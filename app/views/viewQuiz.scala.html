@@ -12,19 +12,21 @@
 			<li>@a</li>
 		}
 		</ol>
-		<p>Answered. @{mcd.answer.get+1}</p>
+		<p>@if(mcd.answer.nonEmpty) {Answered. @mcd.answer.get}</p>
 		</div>
 		<hr>
 	}
 	@for(cq <- quiz.codeQuestions) {
 		<div>
 		<p>@cq.prompt</p>
-		@if(cq.correct) {
-			<p>You answered this correctly with the following code.</p>
-		} else {
-			<p>You answered this incorrectly with the following code.</p>
+		@if(cq.lastCode.nonEmpty) {
+			@if(cq.correct) {
+				<p>You answered this correctly with the following code.</p>
+			} else {
+				<p>You answered this incorrectly with the following code.</p>
+			}
+			<pre>@cq.lastCode.get</pre>
 		}
-		<pre>@cq.lastCode.get</pre>
 		</div>
 		<hr>
 	}		

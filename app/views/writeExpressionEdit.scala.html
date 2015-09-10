@@ -1,30 +1,57 @@
 @* writeExpressionEdit Template File *@
-@(spec:WriteExpression)
-<p>
-Prompt:<br>
-<textarea name="exprPromt-@spec.id" id="exprPrompt-@spec.id">@spec.prompt</textarea><br>
+@(spec:WriteExpression)(implicit flash:Flash)
 
-Correct Code: <br>
-<textarea name="funcCode-@spec.id" id="funcCode-@spec.id">@spec.correctCode</textarea><br>
+@main((if(spec.id<1) "Create" else "Edit")+"Write Expression", true) {
+	<h2>@{if(spec.id<1) "Create" else "Edit"} Write Expression</h2>
 
-Variable Specs: <br>
-<ul>
-	@for((vs,specIndex) <- spec.varSpecs.zipWithIndex) {
-		<li>
-			@{vs match {
-				case is:IntSpec => intSpecEdit(is, spec.id, ProblemSpec.FunctionType, specIndex)
-				case ds:DoubleSpec => doubleSpecEdit(ds, spec.id, ProblemSpec.FunctionType, specIndex)
-				case ss:StringSpec => stringSpecEdit(ss, spec.id, ProblemSpec.FunctionType, specIndex)
-				case lis:ListIntSpec => listIntSpecEdit(lis, spec.id, ProblemSpec.FunctionType, specIndex)
-				case ais:ArrayIntSpec => arrayIntSpecEdit(ais, spec.id, ProblemSpec.FunctionType, specIndex)
-				case lss:ListStringSpec => listStringSpecEdit(lss, spec.id, ProblemSpec.FunctionType, specIndex)
-			}}
-		</li>
-	}
-</ul><br>
+	<p><form method="post" action="writeExpressionEditPost">
+		<input type="hidden" name="id" value="@spec.id"/>
+		Prompt:<br>
+		<textarea name="prompt" id="prompt">@spec.prompt</textarea><br>
+		
+		Correct Code: <br>
+		<textarea name="code" id="code">@spec.correctCode</textarea><br>
+		
+		General Setup: <br>
+		<textarea type="text" name="setup" id="setup">@spec.generalSetup</textarea><br>
+		
+		Number of Test Runs: <input type="text" name="numRuns" id="numRuns" value="@spec.numRuns"/><br>
+		
+		<input type="hidden" name="specCodes" value="@{spec.varSpecs.map(vs => vs.typeNumber+"-"+vs.paramNumber).mkString(",")}"/>
 
-General Setup: <br>
-<textarea type="text" name="exprName-@spec.id" id="exprName-@spec.id">@spec.generalSetup</textarea><br>
-
-Number of Test Runs: <input type="text" name="funcRuns-@spec.id" id="funcRuns-@spec.id" value="@spec.numRuns"/>
-</p>
+		Variable Specs: <br>
+		<ul>
+			@for(vs <- spec.varSpecs.sortBy(_.paramNumber)) {
+				<li>
+					@{vs match {
+						case is:IntSpec => intSpecEdit(is)
+						case ds:DoubleSpec => doubleSpecEdit(ds)
+						case ss:StringSpec => stringSpecEdit(ss)
+						case lis:ListIntSpec => listIntSpecEdit(lis)
+						case ais:ArrayIntSpec => arrayIntSpecEdit(ais)
+						case lss:ListStringSpec => listStringSpecEdit(lss)
+					}}
+				</li>
+			}
+		</ul><br>
+		<input type="submit"/>
+		<a href="@routes.Application.instructorPage">Cancel</a>
+	</form></p>
+	
+	<p><form method="post" action="addVarSpec">
+		<input type="hidden" name="type" value="@ProblemSpec.ExpressionType"/>
+		<input type="hidden" name="id" value="@spec.id"/>
+		<input type="hidden" name="newParamNum" value="@if(spec.varSpecs.isEmpty){0} else {@{spec.varSpecs.map(_.paramNumber).max+1}}"/>
+		Add Variable Spec
+		<input type="text" name="name" placeholder="name"></input>
+		<select name="specType" id="specType">
+			<option value="@VariableSpec.IntSpecType">Int</option>
+			<option value="@VariableSpec.DoubleSpecType">Double</option>
+			<option value="@VariableSpec.StringSpecType">String</option>
+			<option value="@VariableSpec.IntListSpecType">List[Int]</option>
+			<option value="@VariableSpec.IntArraySpecType">Array[Int]</option>
+			<option value="@VariableSpec.StringListSpecType">List[String]</option>
+		</select>
+		<input type="submit"/>
+	</form></p>
+}

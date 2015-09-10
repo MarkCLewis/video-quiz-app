@@ -11,17 +11,17 @@ Correct Code: <br>
 
 Variable Specs: <br>
 <ul id="funcul-@spec.id">
-	@for((vs,specIndex) <- spec.varSpecs.zipWithIndex) {
-		<li id="funcil-@spec.id-@specIndex">
+	@for(vs <- spec.varSpecs) {
+		<li id="funcil-@spec.id-@vs.paramNumber">
 			@{vs match {
-				case is:IntSpec => intSpecEdit(is, spec.id, ProblemSpec.FunctionType, specIndex)
-				case ds:DoubleSpec => doubleSpecEdit(ds, spec.id, ProblemSpec.FunctionType, specIndex)
-				case ss:StringSpec => stringSpecEdit(ss, spec.id, ProblemSpec.FunctionType, specIndex)
-				case lis:ListIntSpec => listIntSpecEdit(lis, spec.id, ProblemSpec.FunctionType, specIndex)
-				case ais:ArrayIntSpec => arrayIntSpecEdit(ais, spec.id, ProblemSpec.FunctionType, specIndex)
-				case lss:ListStringSpec => listStringSpecEdit(lss, spec.id, ProblemSpec.FunctionType, specIndex)
+				case is:IntSpec => intSpecEdit(is)
+				case ds:DoubleSpec => doubleSpecEdit(ds)
+				case ss:StringSpec => stringSpecEdit(ss)
+				case lis:ListIntSpec => listIntSpecEdit(lis)
+				case ais:ArrayIntSpec => arrayIntSpecEdit(ais)
+				case lss:ListStringSpec => listStringSpecEdit(lss)
 			}}
-			<button type="button" onclick="removeSpec('func',@spec.id,@specIndex)">Remove</button>
+			<button type="button" onclick="removeSpec('func',@spec.id,@vs.paramNumber)">Remove</button>
 		</li>
 	}
 </ul><br>

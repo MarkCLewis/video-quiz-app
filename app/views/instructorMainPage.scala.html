@@ -93,6 +93,14 @@
 		@for(q <- exprQuestions) {
 			<tr>
 				<td><a href="@routes.Application.writeExpressionEdit(q.exprQuestionId)">@q.prompt</a></td>
+				<td>
+					<select id="quiz-expr-@q.exprQuestionId">
+						@for(quiz <- quizInfo) {
+							<option value="@quiz.quizid">@quiz.name</option>
+						}
+					</select>
+					<button type="button" onclick="associateExprWithQuiz(@q.exprQuestionId)">Add</button>
+				</td>
 			</tr>
 		}
 	</table>

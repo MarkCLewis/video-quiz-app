@@ -1,7 +1,7 @@
 @* doubleSpecEdit Template File *@
-@(ds:DoubleSpec, questionid:Int, questionType:Int, specIndex:Int)
+@(ds:DoubleSpec)
 
 <strong>Double - </strong>
-Name: <input name="dsVName-@questionid-@questionType-@specIndex" id="dsVName-@questionid-@questionType-@specIndex" value="@ds.name" placeholder="Variable name"/>
-Min: <input name="dsMin-@questionid-@questionType-@specIndex" id="dsMin-@questionid-@questionType-@specIndex" value="@ds.min" placeholder="min value"/>
-Max: <input name="dsMax-@questionid-@questionType-@specIndex" id="dsMax-@questionid-@questionType-@specIndex" value="@ds.max" placeholder="max value"/>
+Name: <input name="VName-@VariableSpec.DoubleSpecType-@ds.paramNumber" id="VName-@VariableSpec.DoubleSpecType-@ds.paramNumber" value="@ds.name" placeholder="Variable name"/>
+Min: <input name="Min-@VariableSpec.DoubleSpecType-@ds.paramNumber" id="Min-@VariableSpec.DoubleSpecType-@ds.paramNumber" value="@ds.min" placeholder="min value"/>
+Max: <input name="Max-@VariableSpec.DoubleSpecType-@ds.paramNumber" id="Max-@VariableSpec.DoubleSpecType-@ds.paramNumber" value="@ds.max" placeholder="max value"/>

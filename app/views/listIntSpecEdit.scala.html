@@ -1,9 +1,9 @@
 @* listIntSpecEdit Template File *@
-@(lis:ListIntSpec, questionid:Int, questionType:Int, specIndex:Int)
+@(lis:ListIntSpec)
 
 <strong>List[Int] - </strong>
-Name: <input name="lisVName-@questionid-@questionType-@specIndex" id="lisVName-@questionid-@questionType-@specIndex" value="@lis.name" placeholder="Variable name"/>
-Min Length: <input name="lisMinLen-@questionid-@questionType-@specIndex" id="lisMinLen-@questionid-@questionType-@specIndex" value="@lis.minLen" placeholder="min length"/>
-Max Length: <input name="isMaxLen-@questionid-@questionType-@specIndex" id="lisMaxLen-@questionid-@questionType-@specIndex" value="@lis.maxLen" placeholder="max length"/>
-Min: <input name="lisMin-@questionid-@questionType-@specIndex" id="lisMin-@questionid-@questionType-@specIndex" value="@lis.min" placeholder="min value"/>
-Max: <input name="lisMax-@questionid-@questionType-@specIndex" id="lisMax-@questionid-@questionType-@specIndex" value="@lis.max" placeholder="max value"/>
+Name: <input name="VName-@VariableSpec.IntListSpecType-@lis.paramNumber" id="VName-@VariableSpec.IntListSpecType-@lis.paramNumber" value="@lis.name" placeholder="Variable name"/>
+Min Length: <input name="MinLen-@VariableSpec.IntListSpecType-@lis.paramNumber" id="MinLen-@VariableSpec.IntListSpecType-@lis.paramNumber" value="@lis.minLen" placeholder="min length"/>
+Max Length: <input name="MaxLen-@VariableSpec.IntListSpecType-@lis.paramNumber" id="MaxLen-@VariableSpec.IntListSpecType-@lis.paramNumber" value="@lis.maxLen" placeholder="max length"/>
+Min: <input name="Min-@VariableSpec.IntListSpecType-@lis.paramNumber" id="Min-@VariableSpec.IntListSpecType-@lis.paramNumber" value="@lis.min" placeholder="min value"/>
+Max: <input name="Max-@VariableSpec.IntListSpecType-@lis.paramNumber" id="Max-@VariableSpec.IntListSpecType-@lis.paramNumber" value="@lis.max" placeholder="max value"/>

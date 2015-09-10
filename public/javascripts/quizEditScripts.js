@@ -55,6 +55,21 @@ function associateMCWithQuiz(mcid) {
 	});
 }
 
+function associateExprWithQuiz(id) {
+	var quizSelect = $("#quiz-expr-"+id);
+	var quizid = quizSelect.val();
+	var request = $.ajax({
+		method: "PUT",
+		url: "addExprToQuiz?questionid="+id+"&quizid="+quizid
+	});
+	request.done(function () {
+		alert("Association made.");
+	});
+	request.fail(function( jqXHR, textStatus ) {
+		alert( "Request failed: " + textStatus );
+	});
+}
+
 function removeQuestionQuizAssoc(questionid, questionType, quizid,index) {
 	$("#prob-"+index).remove();
 	var request = $.ajax({

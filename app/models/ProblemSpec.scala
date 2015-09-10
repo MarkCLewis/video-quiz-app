@@ -65,6 +65,24 @@ object ProblemSpec {
         writeExpression(id, db)
     }
   }
+  
+  def newWriteFunction(db:Database):Future[WriteFunction] = {
+    db.run(FunctionQuestions += FunctionQuestionsRow(0,"","","",10)).flatMap(_ =>
+      db.run(FunctionQuestions.map(_.funcQuestionId).max.result)).flatMap(id =>
+        writeFunction(id.get,db))
+  } 
+  
+  def newWriteLambda(db:Database):Future[WriteLambda] = {
+    db.run(LambdaQuestions += LambdaQuestionsRow(0,"","","",10)).flatMap(_ =>
+      db.run(LambdaQuestions.map(_.lambdaQuestionId).max.result)).flatMap(id =>
+        writeLambda(id.get,db))
+  } 
+  
+  def newWriteExpression(db:Database):Future[WriteExpression] = {
+    db.run(ExpressionQuestions += ExpressionQuestionsRow(0,"","","",10)).flatMap(_ =>
+      db.run(ExpressionQuestions.map(_.exprQuestionId).max.result)).flatMap(id =>
+        writeExpression(id.get,db))
+  } 
 
   def nestTest(testCode: String, numRuns: Int): String = {
     s"""import scala.concurrent.Future

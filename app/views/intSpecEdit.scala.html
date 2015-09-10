@@ -1,7 +1,7 @@
 @* intSpecEdit Template File *@
-@(is:IntSpec, questionid:Int, questionType:Int, specIndex:Int)
+@(is:IntSpec)
 
 <strong>Int - </strong>
-Name: <input name="isVName-@questionid-@questionType-@specIndex" id="isVName-@questionid-@questionType-@specIndex" value="@is.name" placeholder="Variable name"/>
-Min: <input name="isMin-@questionid-@questionType-@specIndex" id="isMin-@questionid-@questionType-@specIndex" value="@is.min" placeholder="min value"/>
-Max: <input name="isMax-@questionid-@questionType-@specIndex" id="isMax-@questionid-@questionType-@specIndex" value="@is.max" placeholder="max value"/>
+Name: <input name="VName-@VariableSpec.IntSpecType-@is.paramNumber" id="VName-@VariableSpec.IntSpecType-@is.paramNumber" value="@is.name" placeholder="Variable name"/>
+Min: <input name="Min-@VariableSpec.IntSpecType-@is.paramNumber" id="Min-@VariableSpec.IntSpecType-@is.paramNumber" value="@is.min" placeholder="min value"/>
+Max: <input name="Max-@VariableSpec.IntSpecType-@is.paramNumber" id="Max-@VariableSpec.IntSpecType-@is.paramNumber" value="@is.max" placeholder="max value"/>

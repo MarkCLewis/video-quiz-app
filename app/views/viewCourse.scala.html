@@ -7,7 +7,7 @@
 	<p>Add Student (TODO)</p>
 	<table border="1">
 		<tr><th>Username</th><th>Correct (out of @courseData.totalQuestions)</th><th>Remove</th></tr>
-		@for(student <- courseData.students) {
+		@for(student <- courseData.students.sortBy(_.username.drop(1))) {
 			<tr>
 				<td>@student.username</td>
 				<td>@student.correct</td>

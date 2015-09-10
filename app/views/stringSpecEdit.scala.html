@@ -1,7 +1,7 @@
 @* stringSpecEdit Template File *@
-@(ss:StringSpec, questionid:Int, questionType:Int, specIndex:Int)
+@(ss:StringSpec)
 
 <strong>String - </strong>
-Name: <input name="ssVName-@questionid-@questionType-@specIndex" id="isVName-@questionid-@questionType-@specIndex" value="@ss.name" placeholder="Variable name"/>
-Length: <input name="ssLength-@questionid-@questionType-@specIndex" id="ssLength-@questionid-@questionType-@specIndex" value="@ss.length" placeholder="Length"/>
-Generating Code: <textarea name="ssGen-@questionid-@questionType-@specIndex" id="ssGen-@questionid-@questionType-@specIndex" placeholder="Gen Code">@ss.genCode</textarea>
+Name: <input name="VName-@VariableSpec.StringSpecType-@ss.paramNumber" id="VName-@VariableSpec.StringSpecType-@ss.paramNumber" value="@ss.name" placeholder="Variable name"/>
+Length: <input name="Length-@VariableSpec.StringSpecType-@ss.paramNumber" id="Length-@VariableSpec.StringSpecType-@ss.paramNumber" value="@ss.length" placeholder="Length"/>
+Generating Code: <textarea name="Gen-@VariableSpec.StringSpecType-@ss.paramNumber" id="Gen-@VariableSpec.StringSpecType-@ss.paramNumber" placeholder="Gen Code">@ss.genCode</textarea>

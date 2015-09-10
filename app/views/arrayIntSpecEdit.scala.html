@@ -1,9 +1,9 @@
 @* arrayIntSpecEdit Template File *@
-@(ais:ArrayIntSpec, questionid:Int, questionType:Int, specIndex:Int)
+@(ais:ArrayIntSpec)
 
 <strong>Array[Int] - </strong>
-Name: <input name="aisVName-@questionid-@questionType-@specIndex" id="aisVName-@questionid-@questionType-@specIndex" value="@ais.name" placeholder="Variable name"/>
-Min Length: <input name="aisMinLen-@questionid-@questionType-@specIndex" id="aisMinLen-@questionid-@questionType-@specIndex" value="@ais.minLen" placeholder="min length"/>
-Max Length: <input name="asMaxLen-@questionid-@questionType-@specIndex" id="aisMaxLen-@questionid-@questionType-@specIndex" value="@ais.maxLen" placeholder="max length"/>
-Min: <input name="aisMin-@questionid-@questionType-@specIndex" id="aisMin-@questionid-@questionType-@specIndex" value="@ais.min" placeholder="min value"/>
-Max: <input name="aisMax-@questionid-@questionType-@specIndex" id="aisMax-@questionid-@questionType-@specIndex" value="@ais.max" placeholder="max value"/>
+Name: <input name="VName-@VariableSpec.IntArraySpecType-@ais.paramNumber" id="VName-@VariableSpec.IntArraySpecType-@ais.paramNumber" value="@ais.name" placeholder="Variable name"/>
+Min Length: <input name="MinLen-@VariableSpec.IntArraySpecType-@ais.paramNumber" id="MinLen-@VariableSpec.IntArraySpecType-@ais.paramNumber" value="@ais.minLen" placeholder="min length"/>
+Max Length: <input name="MaxLen-@VariableSpec.IntArraySpecType-@ais.paramNumber" id="MaxLen-@VariableSpec.IntArraySpecType-@ais.paramNumber" value="@ais.maxLen" placeholder="max length"/>
+Min: <input name="Min-@VariableSpec.IntArraySpecType-@ais.paramNumber" id="Min-@VariableSpec.IntArraySpecType-@ais.paramNumber" value="@ais.min" placeholder="min value"/>
+Max: <input name="Max-@VariableSpec.IntArraySpecType-@ais.paramNumber" id="Max-@VariableSpec.IntArraySpecType-@ais.paramNumber" value="@ais.max" placeholder="max value"/>

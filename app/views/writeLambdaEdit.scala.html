@@ -14,12 +14,12 @@ Variable Specs: <br>
 	@for((vs,specIndex) <- spec.varSpecs.zipWithIndex) {
 		<li>
 			@{vs match {
-				case is:IntSpec => intSpecEdit(is, spec.id, ProblemSpec.LambdaType, specIndex)
-				case ds:DoubleSpec => doubleSpecEdit(ds, spec.id, ProblemSpec.LambdaType, specIndex)
-				case ss:StringSpec => stringSpecEdit(ss, spec.id, ProblemSpec.LambdaType, specIndex)
-				case lis:ListIntSpec => listIntSpecEdit(lis, spec.id, ProblemSpec.LambdaType, specIndex)
-				case ais:ArrayIntSpec => arrayIntSpecEdit(ais, spec.id, ProblemSpec.LambdaType, specIndex)
-				case lss:ListStringSpec => listStringSpecEdit(lss, spec.id, ProblemSpec.LambdaType, specIndex)
+				case is:IntSpec => intSpecEdit(is)
+				case ds:DoubleSpec => doubleSpecEdit(ds)
+				case ss:StringSpec => stringSpecEdit(ss)
+				case lis:ListIntSpec => listIntSpecEdit(lis)
+				case ais:ArrayIntSpec => arrayIntSpecEdit(ais)
+				case lss:ListStringSpec => listStringSpecEdit(lss)
 			}}
 		</li>
 	}

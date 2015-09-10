@@ -39,6 +39,14 @@ POST	/editQuizPost				controllers.Application.editQuizPost
 
 POST	/multipleChoiceEditPost		controllers.Application.multipleChoiceEditPost
 
+POST	/writeFunctionEditPost		controllers.Application.writeFunctionEditPost
+
+POST	/writeLambdaEditPost		controllers.Application.writeLambdaEditPost
+
+POST	/writeExpressionEditPost	controllers.Application.writeExpressionEditPost
+
+POST	/addVarSpec					controllers.Application.addVarSpec
+
 
 PUT		/associateQuiz				controllers.Application.associateQuizWithCourse(quizid:Int, courseid:Int, closingTime:String)
 

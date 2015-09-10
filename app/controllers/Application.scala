@@ -140,7 +140,17 @@ class Application extends Controller {
 
   def writeLambdaEdit(id: Int) = TODO
 
-  def writeExpressionEdit(id: Int) = TODO
+  def writeExpressionEdit(id: Int) = AuthenticatedInstructorAction { implicit requext =>
+    if (id < 1) {
+      ProblemSpec.newWriteExpression(dbConfig.db).map { ps =>
+        Redirect(routes.Application.writeExpressionEdit(ps.id))
+      }
+    } else {
+      ProblemSpec.writeExpression(id, dbConfig.db).map { ps =>
+        Ok(views.html.writeExpressionEdit(ps))
+      }
+    }
+  }
 
   def addCourse = AuthenticatedInstructorAction { implicit request =>
     Future { Ok(views.html.addCourse(newCourseForm)) }
@@ -148,7 +158,7 @@ class Application extends Controller {
 
   def viewCourse(courseid: Int) = AuthenticatedInstructorAction { implicit request =>
     Queries.loadCourseData(courseid, dbConfig.db).map(cd => Ok(views.html.viewCourse(cd)))
-  } 
+  }
 
   def setupDatabase = Action { implicit request =>
     dbConfig.db.run(Users.filter(_.username === "mlewis").result).map(s =>
@@ -219,7 +229,7 @@ class Application extends Controller {
           for (key <- params.keys; if key.startsWith("mc-")) {
             val mcid = key.drop(3).toInt
             val pspec = ProblemSpec(ProblemSpec.MultipleChoiceType, mcid, db)
-            println("You answered "+params(key)(0))
+            println("You answered " + params(key)(0))
             val correct = pspec.map(_.checkResponse(params(key)(0)))
             val selection = try { params(key)(0).toInt } catch { case e: NumberFormatException => -1 }
             correct.map(c => db.run(McAnswers += McAnswersRow(Some(userid), Some(quizid), Some(mcid), selection, c)))
@@ -292,6 +302,72 @@ class Application extends Controller {
     }
   }
 
+  def writeFunctionEditPost = TODO
+
+  def writeLambdaEditPost = TODO
+
+  def writeExpressionEditPost = AuthenticatedInstructorAction { implicit request =>
+    val db = dbConfig.db
+    val userid = request.session("userid").toInt
+    request.body.asFormUrlEncoded match {
+      case Some(params) =>
+        val id = params("id")(0).toInt
+        val prompt = params("prompt")(0)
+        val code = params("code")(0)
+        val setup = params("setup")(0)
+        val numRuns = params("numRuns")(0).toInt
+        val varSpecs = if(params("specCodes")(0).isEmpty) Array[Array[Int]]() else params("specCodes")(0).split(",").map(_.split("-").map(_.toInt))
+        if (id < 1) {
+          db.run(ExpressionQuestions += ExpressionQuestionsRow(id, prompt, code, setup, numRuns))
+        } else {
+          db.run(ExpressionQuestions.filter(_.exprQuestionId === id).update(ExpressionQuestionsRow(id, prompt, code, setup, numRuns)))
+        }
+        for(Array(tn,pn) <- varSpecs) {
+          val name = params(s"VName-$tn-$pn")(0)
+          val (min, max, length, minLen, maxLen, genCode) = tn match {
+            case VariableSpec.IntSpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, None, None, None)
+            case VariableSpec.DoubleSpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toDouble.toInt), Some(params(s"Max-$tn-$pn")(0).toDouble.toInt), None, None, None, None)
+            case VariableSpec.StringSpecType =>
+              (None, None, Some(params(s"Length-$tn-$pn")(0).toInt), None, None, Some(params(s"Gen-$tn-$pn")(0)))
+            case VariableSpec.IntListSpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
+            case VariableSpec.IntArraySpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
+            case VariableSpec.StringListSpecType =>
+              (None, None, Some(params(s"Length-$tn-$pn")(0).toInt), Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), Some(params(s"Gen-$tn-$pn")(0)))
+          }
+          db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === tn && vs.paramNumber === pn).
+              update(VariableSpecificationsRow(id, ProblemSpec.ExpressionType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))
+        }
+        Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Question saved.") }
+      case None =>
+        Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Question not saved, no data.") }
+    }
+  }
+
+  def addVarSpec = AuthenticatedInstructorAction { implicit request =>
+    val db = dbConfig.db
+    val userid = request.session("userid").toInt
+    request.body.asFormUrlEncoded match {
+      case Some(params) =>
+        val qType = params("type")(0).toInt
+        val qid = params("id")(0).toInt
+        val newParamNum = params("newParamNum")(0).toInt
+        val specType = params("specType")(0).toInt
+        val name = params("name")(0)
+        db.run(VariableSpecifications += VariableSpecificationsRow(qid, qType, newParamNum, specType, name, None, None, None, None, None, None)).map(_ =>
+          qType match {
+            case ProblemSpec.FunctionType => Redirect(routes.Application.writeFunctionEdit(qid))
+            case ProblemSpec.LambdaType => Redirect(routes.Application.writeLambdaEdit(qid))
+            case ProblemSpec.ExpressionType => Redirect(routes.Application.writeExpressionEdit(qid))
+        })
+      case None =>
+        Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Oops! Error, no data.") }
+    }
+  }
+
   // AJAX Calls
 
   def associateMCQuestionWithQuiz(questionid: Int, quizid: Int) = AuthenticatedInstructorAction { implicit request =>
@@ -303,7 +379,10 @@ class Application extends Controller {
 
   def associateLambdaQuestionWithQuiz(questionid: Int, quizid: Int) = TODO
 
-  def associateExprQuestionWithQuiz(questionid: Int, quizid: Int) = TODO
+  def associateExprQuestionWithQuiz(questionid: Int, quizid: Int) = AuthenticatedInstructorAction { implicit request =>
+    dbConfig.db.run(ExpressionAssoc += ExpressionAssocRow(Some(quizid), Some(questionid)))
+    Future { Ok("good") }
+  }
 
   def associateQuizWithCourse(quizid: Int, courseid: Int, dateTime: String) = AuthenticatedInstructorAction { implicit request =>
     val zoneId = ZoneId.of("America/Chicago")

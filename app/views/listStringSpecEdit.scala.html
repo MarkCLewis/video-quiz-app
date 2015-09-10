@@ -1,9 +1,9 @@
 @* ListStringSpecEdit Template File *@
-@(lss:ListStringSpec, questionid:Int, questionType:Int, specIndex:Int)
+@(lss:ListStringSpec)
 
 <strong>List[String] - </strong>
-Name: <input name="lssVName-@questionid-@questionType-@specIndex" id="lssVName-@questionid-@questionType-@specIndex" value="@lss.name" placeholder="Variable name"/>
-Min Length: <input name="lssMinLen-@questionid-@questionType-@specIndex" id="lssMinLen-@questionid-@questionType-@specIndex" value="@lss.minLen" placeholder="min length"/>
-Max Length: <input name="isMaxLen-@questionid-@questionType-@specIndex" id="lssMaxLen-@questionid-@questionType-@specIndex" value="@lss.maxLen" placeholder="max length"/>
-Length: <input name="ssLength-@questionid-@questionType-@specIndex" id="ssLength-@questionid-@questionType-@specIndex" value="@lss.stringLength" placeholder="Length"/>
-Generating Code: <textarea name="ssGen-@questionid-@questionType-@specIndex" id="ssGen-@questionid-@questionType-@specIndex" placeholder="Gen Code">@lss.genCode</textarea>
+Name: <input name="VName-@VariableSpec.StringListSpecType-@lss.paramNumber" id="VName-@VariableSpec.StringListSpecType-@lss.paramNumber" value="@lss.name" placeholder="Variable name"/>
+Min Length: <input name="MinLen-@VariableSpec.StringListSpecType-@lss.paramNumber" id="MinLen-@VariableSpec.StringListSpecType-@lss.paramNumber" value="@lss.minLen" placeholder="min length"/>
+Max Length: <input name="MaxLen-@VariableSpec.StringListSpecType-@lss.paramNumber" id="MaxLen-@VariableSpec.StringListSpecType-@lss.paramNumber" value="@lss.maxLen" placeholder="max length"/>
+Length: <input name="Length-@VariableSpec.StringListSpecType-@lss.paramNumber" id="Length-@VariableSpec.StringListSpecType-@lss.paramNumber" value="@lss.stringLength" placeholder="Length"/>
+Generating Code: <textarea name="Gen-@VariableSpec.StringListSpecType-@lss.paramNumber" id="Gen-@VariableSpec.StringListSpecType-@lss.paramNumber" placeholder="Gen Code">@lss.genCode</textarea>
