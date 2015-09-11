@@ -9,7 +9,7 @@
 		<tr><th>Username</th><th>Correct (out of @courseData.totalQuestions)</th><th>Remove</th></tr>
 		@for(student <- courseData.students.sortBy(_.username.drop(1))) {
 			<tr>
-				<td>@student.username</td>
+				<td><a href="@routes.Application.instructorQuizList(student.userid)">@student.username</a></td>
 				<td>@student.correct</td>
 				<td><button type="button" onclick="removeStudentFromCourse(@student.userid,@courseData.row.courseid)">Remove</button></td>
 			</tr>

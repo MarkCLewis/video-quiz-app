@@ -11,9 +11,11 @@ GET		/logout						controllers.Application.logout
 
 GET		/quizList					controllers.Application.quizList
 
-GET		/viewQuiz					controllers.Application.viewQuiz(quizid:Int)
+GET		/instructorQuizList			controllers.Application.instructorQuizList(uid: Int)
 
-GET		/takeQuiz					controllers.Application.takeQuiz(quizid:Int)
+GET		/viewQuiz					controllers.Application.viewQuiz(quizid: Int)
+
+GET		/takeQuiz					controllers.Application.takeQuiz(quizid: Int)
 
 GET		/instructorPage				controllers.Application.instructorPage
 

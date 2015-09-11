@@ -41,30 +41,13 @@ class Application extends Controller {
   })
 
   def quizList = AuthenticatedAction(implicit request => {
-    val uname = request.session.get("username").getOrElse("No name")
     val uid = request.session.get("userid").getOrElse("-1").toInt
-    val db = dbConfig.db
-    val classes = Queries.coursesFor(uid, db)
-    val quizzes = (for (s <- classes) yield {
-      Future.sequence(for (c <- s) yield {
-        val classQuizzes = Queries.allQuizzesForClass(c.courseid, db)
-        val now = new Timestamp(new Date().getTime)
-        val quizTuple = classQuizzes.flatMap(quizzes => {
-          val quizData = for {
-            (p, t) <- quizzes
-            tot = Queries.numberOfQuestions(p.quizid, db)
-            corr = Queries.numberOfCorrectQuestions(p.quizid, uid, db)
-          } yield for {
-            correct <- corr
-            total <- tot
-          } yield (p, t, correct, total)
-          Future.sequence(quizData).map(qd => qd.partition(now.getTime < _._2.getTime))
-        })
-        quizTuple.map(qt => (c.code + "-" + c.section + "-" + c.semester, qt._1, qt._2))
-      })
-    }).flatMap(f => f)
-    quizzes.map(qs => Ok(views.html.quizList(qs)))
+    gotoQuizList(uid)
   })
+  
+  def instructorQuizList(uid:Int) = AuthenticatedInstructorAction { implicit request =>
+    gotoQuizList(uid)
+  }
 
   def viewQuiz(quizid: Int) = AuthenticatedAction { implicit request =>
     {
@@ -136,9 +119,29 @@ class Application extends Controller {
     }
   }
 
-  def writeFunctionEdit(id: Int) = TODO
+  def writeFunctionEdit(id: Int) = AuthenticatedInstructorAction { implicit requext =>
+    if (id < 1) {
+      ProblemSpec.newWriteFunction(dbConfig.db).map { ps =>
+        Redirect(routes.Application.writeFunctionEdit(ps.id))
+      }
+    } else {
+      ProblemSpec.writeFunction(id, dbConfig.db).map { ps =>
+        Ok(views.html.writeFunctionEdit(ps))
+      }
+    }
+  }
 
-  def writeLambdaEdit(id: Int) = TODO
+  def writeLambdaEdit(id: Int) = AuthenticatedInstructorAction { implicit requext =>
+    if (id < 1) {
+      ProblemSpec.newWriteLambda(dbConfig.db).map { ps =>
+        Redirect(routes.Application.writeLambdaEdit(ps.id))
+      }
+    } else {
+      ProblemSpec.writeLambda(id, dbConfig.db).map { ps =>
+        Ok(views.html.writeLambdaEdit(ps))
+      }
+    }
+  }
 
   def writeExpressionEdit(id: Int) = AuthenticatedInstructorAction { implicit requext =>
     if (id < 1) {
@@ -302,9 +305,87 @@ class Application extends Controller {
     }
   }
 
-  def writeFunctionEditPost = TODO
+  def writeFunctionEditPost = AuthenticatedInstructorAction { implicit request =>
+    val db = dbConfig.db
+    val userid = request.session("userid").toInt
+    request.body.asFormUrlEncoded match {
+      case Some(params) =>
+        val id = params("id")(0).toInt
+        val prompt = params("prompt")(0)
+        val code = params("code")(0)
+        val fname = params("fname")(0)
+        val numRuns = params("numRuns")(0).toInt
+        val varSpecs = if(params("specCodes")(0).isEmpty) Array[Array[Int]]() else params("specCodes")(0).split(",").map(_.split("-").map(_.toInt))
+        if (id < 1) {
+          db.run(FunctionQuestions += FunctionQuestionsRow(id, prompt, code, fname, numRuns))
+        } else {
+          db.run(FunctionQuestions.filter(_.funcQuestionId === id).update(FunctionQuestionsRow(id, prompt, code, fname, numRuns)))
+        }
+        for(Array(tn,pn) <- varSpecs) {
+          val name = params(s"VName-$tn-$pn")(0)
+          val (min, max, length, minLen, maxLen, genCode) = tn match {
+            case VariableSpec.IntSpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, None, None, None)
+            case VariableSpec.DoubleSpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toDouble.toInt), Some(params(s"Max-$tn-$pn")(0).toDouble.toInt), None, None, None, None)
+            case VariableSpec.StringSpecType =>
+              (None, None, Some(params(s"Length-$tn-$pn")(0).toInt), None, None, Some(params(s"Gen-$tn-$pn")(0)))
+            case VariableSpec.IntListSpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
+            case VariableSpec.IntArraySpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
+            case VariableSpec.StringListSpecType =>
+              (None, None, Some(params(s"Length-$tn-$pn")(0).toInt), Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), Some(params(s"Gen-$tn-$pn")(0)))
+          }
+          db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === tn && vs.paramNumber === pn).
+              update(VariableSpecificationsRow(id, ProblemSpec.FunctionType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))
+        }
+        Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Question saved.") }
+      case None =>
+        Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Question not saved, no data.") }
+    }
+  }
 
-  def writeLambdaEditPost = TODO
+  def writeLambdaEditPost = AuthenticatedInstructorAction { implicit request =>
+    val db = dbConfig.db
+    val userid = request.session("userid").toInt
+    request.body.asFormUrlEncoded match {
+      case Some(params) =>
+        val id = params("id")(0).toInt
+        val prompt = params("prompt")(0)
+        val code = params("code")(0)
+        val rtype = params("return")(0)
+        val numRuns = params("numRuns")(0).toInt
+        val varSpecs = if(params("specCodes")(0).isEmpty) Array[Array[Int]]() else params("specCodes")(0).split(",").map(_.split("-").map(_.toInt))
+        if (id < 1) {
+          db.run(LambdaQuestions += LambdaQuestionsRow(id, prompt, code, rtype, numRuns))
+        } else {
+          db.run(LambdaQuestions.filter(_.lambdaQuestionId === id).update(LambdaQuestionsRow(id, prompt, code, rtype, numRuns)))
+        }
+        for(Array(tn,pn) <- varSpecs) {
+          val name = params(s"VName-$tn-$pn")(0)
+          val (min, max, length, minLen, maxLen, genCode) = tn match {
+            case VariableSpec.IntSpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, None, None, None)
+            case VariableSpec.DoubleSpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toDouble.toInt), Some(params(s"Max-$tn-$pn")(0).toDouble.toInt), None, None, None, None)
+            case VariableSpec.StringSpecType =>
+              (None, None, Some(params(s"Length-$tn-$pn")(0).toInt), None, None, Some(params(s"Gen-$tn-$pn")(0)))
+            case VariableSpec.IntListSpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
+            case VariableSpec.IntArraySpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
+            case VariableSpec.StringListSpecType =>
+              (None, None, Some(params(s"Length-$tn-$pn")(0).toInt), Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), Some(params(s"Gen-$tn-$pn")(0)))
+          }
+          db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === tn && vs.paramNumber === pn).
+              update(VariableSpecificationsRow(id, ProblemSpec.LambdaType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))
+        }
+        Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Question saved.") }
+      case None =>
+        Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Question not saved, no data.") }
+    }
+  }
 
   def writeExpressionEditPost = AuthenticatedInstructorAction { implicit request =>
     val db = dbConfig.db
@@ -450,5 +531,29 @@ class Application extends Controller {
         Future { Redirect(routes.Application.index()) }
       }
     }
+  }
+  
+  private def gotoQuizList(uid: Int)(implicit request: Request[AnyContent]) = {
+    val db = dbConfig.db
+    val classes = Queries.coursesFor(uid, db)
+    val quizzes = (for (s <- classes) yield {
+      Future.sequence(for (c <- s) yield {
+        val classQuizzes = Queries.allQuizzesForClass(c.courseid, db)
+        val now = new Timestamp(new Date().getTime)
+        val quizTuple = classQuizzes.flatMap(quizzes => {
+          val quizData = for {
+            (p, t) <- quizzes
+            tot = Queries.numberOfQuestions(p.quizid, db)
+            corr = Queries.numberOfCorrectQuestions(p.quizid, uid, db)
+          } yield for {
+            correct <- corr
+            total <- tot
+          } yield (p, t, correct, total)
+          Future.sequence(quizData).map(qd => qd.partition(now.getTime < _._2.getTime))
+        })
+        quizTuple.map(qt => (c.code + "-" + c.section + "-" + c.semester, qt._1, qt._2))
+      })
+    }).flatMap(f => f)
+    quizzes.map(qs => Ok(views.html.quizList(qs)))
   }
 }
