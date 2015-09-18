@@ -8,17 +8,17 @@
 		<input type="hidden" name="quizid" value="@quiz.quizid"/>
 		@for(mcd <- quiz.multipleChoice) {
 			<div>
-			<p>@for(l <- mcd.prompt.split("\n")) {@l<br>}</p>
+			<p>@for(l <- mcd.spec.prompt.split("\n")) {@l<br>}</p>
 			@if(mcd.answer.nonEmpty) {
 				<ol>
-				@for(a <- mcd.options) {
+				@for(a <- mcd.spec.options) {
 					<li>@a</li>
 				}
 				</ol>
 				<p>Already answered. @{mcd.answer.get+1}</p>
 			} else {
 				<fieldset>
-				@for((a,i) <- mcd.options.zipWithIndex) {
+				@for((a,i) <- mcd.spec.options.zipWithIndex) {
 					<input type="radio" name="mc-@mcd.mcid" value="@{i+1}">@a<br>
 				}
 				</fieldset>
@@ -28,7 +28,19 @@
 		}
 		@for(cq <- quiz.codeQuestions) {
 			<div>
-			<p>@for(l <- cq.prompt.split("\n")) {@l<br>}</p>
+			<p>@for(l <- cq.spec.prompt.split("\n")) {@l<br>}</p>
+			<p>@{cq.spec match {
+				case wf:WriteFunction => "Function name: "+wf.functionName
+				case wl:WriteLambda => "Return Type: "+wl.returnType
+				case _ => ""
+			}}</p>
+			<p>Variables/Parameters:</p>
+			<ul>@{cq.spec match {
+				case wf:WriteFunction => viewSpecs(wf.varSpecs)
+				case wl:WriteLambda => viewSpecs(wl.varSpecs)
+				case we:WriteExpression => viewSpecs(we.varSpecs)
+				case _ => ""
+			}}</ul>
 			@if(cq.correct) {
 				<p>You have answered this correctly with.</p>
 				<pre>@cq.lastCode.get</pre>

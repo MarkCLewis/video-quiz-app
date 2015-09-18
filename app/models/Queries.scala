@@ -211,13 +211,15 @@ object Queries {
       for {
         row <- s
       } yield {
-        val options = Seq(row.option1, row.option2) ++ Seq(row.option3, row.option4, row.option5, row.option6,
-            row.option7, row.option8).filter(_.nonEmpty).map(_.get)
+        val fspec = ProblemSpec.multipleChoice(row.mcQuestionId, db)
         val userAnswer = db.run((for{
           ans <- McAnswers
           if ans.userid === userid && ans.quizid === quizid && ans.mcQuestionId === row.mcQuestionId
         } yield ans.selection).result)
-        userAnswer.map(ans => MultipleChoiceData(row.mcQuestionId, row.prompt, options, row.correctOption, if(ans.isEmpty) None else Some(ans.head)))
+        for{
+          spec <- fspec
+          ans <- userAnswer
+        } yield MultipleChoiceData(row.mcQuestionId, spec, if(ans.isEmpty) None else Some(ans.head))
       }
     })
     data
@@ -234,11 +236,15 @@ object Queries {
       for {
         row <- s
       } yield {
+        val fspec = ProblemSpec.writeFunction(row.funcQuestionId, db)
         val userAnswers = db.run((for{
           ans <- CodeAnswers
           if ans.userid === userid && ans.quizid === quizid && ans.questionId === row.funcQuestionId && ans.questionType === 1
         } yield ans).result)
-        userAnswers.map(ans => CodeQuestionData(row.funcQuestionId, 1, row.prompt, if(ans.isEmpty) None else Some(ans.last.answer), ans.exists(_.correct)))
+        for {
+          spec <- fspec
+          ans <- userAnswers
+        } yield CodeQuestionData(row.funcQuestionId, 1, spec, if(ans.isEmpty) None else Some(ans.last.answer), ans.exists(_.correct))
       }
     })
     val lambdaRows = db.run {
@@ -251,11 +257,15 @@ object Queries {
       for {
         row <- s
       } yield {
+        val fspec = ProblemSpec.writeLambda(row.lambdaQuestionId, db)
         val userAnswers = db.run((for{
           ans <- CodeAnswers
           if ans.userid === userid && ans.quizid === quizid && ans.questionId === row.lambdaQuestionId && ans.questionType === 2
         } yield ans).result)
-        userAnswers.map(ans => CodeQuestionData(row.lambdaQuestionId, 2, row.prompt, if(ans.isEmpty) None else Some(ans.last.answer), ans.exists(_.correct)))
+        for {
+          spec <- fspec
+          ans <- userAnswers
+        } yield CodeQuestionData(row.lambdaQuestionId, 2, spec, if(ans.isEmpty) None else Some(ans.last.answer), ans.exists(_.correct))
       }
     })
     val exprRows = db.run {
@@ -268,11 +278,15 @@ object Queries {
       for {
         row <- s
       } yield {
+        val fspec = ProblemSpec.writeExpression(row.exprQuestionId, db)
         val userAnswers = db.run((for{
           ans <- CodeAnswers
           if ans.userid === userid && ans.quizid === quizid && ans.questionId === row.exprQuestionId && ans.questionType === 3
         } yield ans).result)
-        userAnswers.map(ans => CodeQuestionData(row.exprQuestionId, 3, row.prompt, if(ans.isEmpty) None else Some(ans.last.answer), ans.exists(_.correct)))
+        for {
+          spec <- fspec
+          ans <- userAnswers
+        } yield CodeQuestionData(row.exprQuestionId, 3, spec, if(ans.isEmpty) None else Some(ans.last.answer), ans.exists(_.correct))
       }
     })
     for {

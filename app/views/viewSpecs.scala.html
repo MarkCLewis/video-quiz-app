@@ -1,0 +1,6 @@
+@* viewSpecs Template File *@
+@(specs: Seq[VariableSpec])
+
+@for(vs <- specs) {
+	<li>@vs.name : @vs.typeName</li>
+}

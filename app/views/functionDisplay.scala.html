@@ -1,0 +1,14 @@
+@* functionDisplay Template File *@
+@(spec:WriteFunction)
+
+<p>
+Prompt: @spec.prompt<br>
+Correct Code: @spec.correctCode<br>
+Function Name: @spec.functionName<br>
+Num Runs: @spec.numRuns
+<ol>
+	@for(vs <- spec.varSpecs) {
+		<li>@vs</li>
+	}
+</ol>
+</p>

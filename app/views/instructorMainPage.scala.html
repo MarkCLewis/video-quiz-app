@@ -73,6 +73,14 @@
 		@for(q <- funcQuestions) {
 			<tr>
 				<td><a href="@routes.Application.writeFunctionEdit(q.funcQuestionId)">@q.prompt</a></td>
+				<td>
+					<select id="quiz-func-@q.funcQuestionId">
+						@for(quiz <- quizInfo) {
+							<option value="@quiz.quizid">@quiz.name</option>
+						}
+					</select>
+					<button type="button" onclick="associateFuncWithQuiz(@q.funcQuestionId)">Add</button>
+				</td>
 			</tr>
 		}
 	</table>
@@ -83,6 +91,14 @@
 		@for(q <- lambdaQuestions) {
 			<tr>
 				<td><a href="@routes.Application.writeLambdaEdit(q.lambdaQuestionId)">@q.prompt</a></td>
+				<td>
+					<select id="quiz-lambda-@q.lambdaQuestionId">
+						@for(quiz <- quizInfo) {
+							<option value="@quiz.quizid">@quiz.name</option>
+						}
+					</select>
+					<button type="button" onclick="associateLambdaWithQuiz(@q.lambdaQuestionId)">Add</button>
+				</td>
 			</tr>
 		}
 	</table>

@@ -9,19 +9,18 @@ case class QuizData(
     name:String,
     description:String,
     multipleChoice:Seq[MultipleChoiceData],
-    codeQuestions:Seq[CodeQuestionData])
+    codeQuestions:Seq[CodeQuestionData]
+    )
 
 case class MultipleChoiceData(
     mcid:Int,
-    prompt:String,
-    options:Seq[String],
-    correctAnswer:Int,
+    spec:MultipleChoice,
     answer:Option[Int])
 
 case class CodeQuestionData(
     questionid:Int,
     questionType:Int,
-    prompt:String,
+    spec:ProblemSpec,
     lastCode:Option[String],
     correct:Boolean) {
   def typeString = questionType match {

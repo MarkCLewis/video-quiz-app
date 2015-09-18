@@ -456,9 +456,15 @@ class Application extends Controller {
     Future { Ok("good") }
   }
 
-  def associateFuncQuestionWithQuiz(questionid: Int, quizid: Int) = TODO
+  def associateFuncQuestionWithQuiz(questionid: Int, quizid: Int) =  AuthenticatedInstructorAction { implicit request =>
+    dbConfig.db.run(FunctionAssoc += FunctionAssocRow(Some(quizid), Some(questionid)))
+    Future { Ok("good") }
+  }
 
-  def associateLambdaQuestionWithQuiz(questionid: Int, quizid: Int) = TODO
+  def associateLambdaQuestionWithQuiz(questionid: Int, quizid: Int) =  AuthenticatedInstructorAction { implicit request =>
+    dbConfig.db.run(LambdaAssoc += LambdaAssocRow(Some(quizid), Some(questionid)))
+    Future { Ok("good") }
+  }
 
   def associateExprQuestionWithQuiz(questionid: Int, quizid: Int) = AuthenticatedInstructorAction { implicit request =>
     dbConfig.db.run(ExpressionAssoc += ExpressionAssocRow(Some(quizid), Some(questionid)))

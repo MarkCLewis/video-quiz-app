@@ -1,0 +1,14 @@
+@* expressionDisplay Template File *@
+@(spec:WriteExpression)
+
+<p>
+Prompt: @spec.prompt<br>
+Correct Code: @spec.correctCode<br>
+General Setup: @spec.generalSetup<br>
+Num Runs: @spec.numRuns
+<ol>
+	@for(vs <- spec.varSpecs) {
+		<li>@vs</li>
+	}
+</ol>
+</p>

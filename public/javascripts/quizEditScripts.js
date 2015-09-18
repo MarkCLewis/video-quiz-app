@@ -70,6 +70,36 @@ function associateExprWithQuiz(id) {
 	});
 }
 
+function associateFuncWithQuiz(id) {
+	var quizSelect = $("#quiz-func-"+id);
+	var quizid = quizSelect.val();
+	var request = $.ajax({
+		method: "PUT",
+		url: "addFuncToQuiz?questionid="+id+"&quizid="+quizid
+	});
+	request.done(function () {
+		alert("Association made.");
+	});
+	request.fail(function( jqXHR, textStatus ) {
+		alert( "Request failed: " + textStatus );
+	});
+}
+
+function associateLambdaWithQuiz(id) {
+	var quizSelect = $("#quiz-lambda-"+id);
+	var quizid = quizSelect.val();
+	var request = $.ajax({
+		method: "PUT",
+		url: "addLambdaToQuiz?questionid="+id+"&quizid="+quizid
+	});
+	request.done(function () {
+		alert("Association made.");
+	});
+	request.fail(function( jqXHR, textStatus ) {
+		alert( "Request failed: " + textStatus );
+	});
+}
+
 function removeQuestionQuizAssoc(questionid, questionType, quizid,index) {
 	$("#prob-"+index).remove();
 	var request = $.ajax({

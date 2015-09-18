@@ -19,9 +19,9 @@ Simplify down to listing questions and allowing them to be removed from the quiz
 		<hr>
 		@{pr match {
 			case mc:MultipleChoice => multipleChoiceDisplay(mc)
-			case wf:WriteFunction =>
-			case wl:WriteLambda =>
-			case we:WriteExpression =>
+			case wf:WriteFunction => functionDisplay(wf)
+			case wl:WriteLambda => lambdaDisplay(wl)
+			case we:WriteExpression => expressionDisplay(we)
 		} }
 		<br>
 		<button type="button" onclick="removeQuestionQuizAssoc(@pr.id,@pr.typeValue,@quizRow.quizid,@index)">Remove</button>

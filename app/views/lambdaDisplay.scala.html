@@ -1,0 +1,14 @@
+@* lambdaDisplay Template File *@
+@(spec:WriteLambda)
+
+<p>
+Prompt: @spec.prompt<br>
+Correct Code: @spec.correctCode<br>
+Return Type: @spec.returnType<br>
+Num Runs: @spec.numRuns
+<ol>
+	@for(vs <- spec.varSpecs) {
+		<li>@vs</li>
+	}
+</ol>
+</p>

@@ -6,9 +6,9 @@
 	<p>@quiz.description</p>
 	@for(mcd <- quiz.multipleChoice) {
 		<div>
-		<p>@mcd.prompt</p>
+		<p>@mcd.spec.prompt</p>
 		<ol>
-		@for(a <- mcd.options) {
+		@for(a <- mcd.spec.options) {
 			<li>@a</li>
 		}
 		</ol>
@@ -18,7 +18,7 @@
 	}
 	@for(cq <- quiz.codeQuestions) {
 		<div>
-		<p>@cq.prompt</p>
+		<p>@cq.spec.prompt</p>
 		@if(cq.lastCode.nonEmpty) {
 			@if(cq.correct) {
 				<p>You answered this correctly with the following code.</p>
