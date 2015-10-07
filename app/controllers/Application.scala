@@ -323,6 +323,7 @@ class Application extends Controller {
         }
         for(Array(tn,pn) <- varSpecs) {
           val name = params(s"VName-$tn-$pn")(0)
+          println(name)
           val (min, max, length, minLen, maxLen, genCode) = tn match {
             case VariableSpec.IntSpecType =>
               (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, None, None, None)
@@ -337,7 +338,8 @@ class Application extends Controller {
             case VariableSpec.StringListSpecType =>
               (None, None, Some(params(s"Length-$tn-$pn")(0).toInt), Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), Some(params(s"Gen-$tn-$pn")(0)))
           }
-          db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === tn && vs.paramNumber === pn).
+          println(s"$id, $tn, $pn - $min, $max, $length, $minLen, $maxLen, $genCode")
+          db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === ProblemSpec.FunctionType && vs.paramNumber === pn).
               update(VariableSpecificationsRow(id, ProblemSpec.FunctionType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))
         }
         Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Question saved.") }
@@ -378,7 +380,7 @@ class Application extends Controller {
             case VariableSpec.StringListSpecType =>
               (None, None, Some(params(s"Length-$tn-$pn")(0).toInt), Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), Some(params(s"Gen-$tn-$pn")(0)))
           }
-          db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === tn && vs.paramNumber === pn).
+          db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === ProblemSpec.LambdaType && vs.paramNumber === pn).
               update(VariableSpecificationsRow(id, ProblemSpec.LambdaType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))
         }
         Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Question saved.") }
@@ -419,7 +421,7 @@ class Application extends Controller {
             case VariableSpec.StringListSpecType =>
               (None, None, Some(params(s"Length-$tn-$pn")(0).toInt), Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), Some(params(s"Gen-$tn-$pn")(0)))
           }
-          db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === tn && vs.paramNumber === pn).
+          db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === ProblemSpec.ExpressionType && vs.paramNumber === pn).
               update(VariableSpecificationsRow(id, ProblemSpec.ExpressionType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))
         }
         Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Question saved.") }
