@@ -1,8 +1,5 @@
 @* addCourse Template File *@
-@(newCourseForm:Form[NewCourseData])(implicit flash:Flash)
-
-@import play.api.Play.current
-@import play.api.i18n.Messages.Implicits._
+@(newCourseForm:Form[NewCourseData])(implicit flash:Flash, messages: Messages)
 
 @main("Create New Course", true) {
 	@helper.form(action = routes.Application.addCoursePost) {

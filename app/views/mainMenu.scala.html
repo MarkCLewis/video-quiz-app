@@ -1,7 +1,4 @@
-@(userForm:Form[Tables.UsersRow])(implicit flash:Flash)
-
-@import play.api.Play.current
-@import play.api.i18n.Messages.Implicits._
+@(userForm:Form[Tables.UsersRow])(implicit flash:Flash, messages: Messages)
 
 @main("Main Menu", false) {
 	<p>Login</p>

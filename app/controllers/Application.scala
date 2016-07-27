@@ -8,6 +8,7 @@ import models._
 import Tables._
 import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
+import slick.driver.MySQLDriver.api._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.sql.Timestamp
@@ -16,10 +17,12 @@ import java.time.format.DateTimeFormatter
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.ZoneId
+import javax.inject.Inject
+import play.api.i18n.MessagesApi
 
-class Application extends Controller {
-  val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
-  import dbConfig.driver.api._
+class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, messagesAPI: MessagesApi) extends Controller {
+  val dbConfig = dbConfigProvider.get[JdbcProfile]
+  implicit val db = dbConfig.db
 
   val userForm = Form(
     mapping(
@@ -37,6 +40,7 @@ class Application extends Controller {
   // GET Actions
 
   def index = Action(implicit request => {
+    implicit val messages = messagesAPI.preferred(request)
     Ok(views.html.mainMenu(userForm))
   })
 
@@ -156,6 +160,7 @@ class Application extends Controller {
   }
 
   def addCourse = AuthenticatedInstructorAction { implicit request =>
+    implicit val messages = messagesAPI.preferred(request)
     Future { Ok(views.html.addCourse(newCourseForm)) }
   }
 
@@ -166,7 +171,7 @@ class Application extends Controller {
   def setupDatabase = Action { implicit request =>
     dbConfig.db.run(Users.filter(_.username === "mlewis").result).map(s =>
       if (s.isEmpty) {
-        dbConfig.db.run(DBIO.seq(
+        dbConfig.db.run(slick.dbio.DBIOAction.seq(
           Users += UsersRow(0, "mlewist", "0123456"),
           Users += UsersRow(0, "mlewis", "0123456"),
           Courses += CoursesRow(0, "CSCI1302", "F15", 6),
@@ -200,6 +205,7 @@ class Application extends Controller {
   // POST Actions
 
   def verifyLogin = Action.async(implicit request => {
+    implicit val messages = messagesAPI.preferred(request)
     userForm.bindFromRequest().fold(
       formWithErrors => {
         Future { Ok(views.html.mainMenu(formWithErrors)) }
@@ -251,6 +257,7 @@ class Application extends Controller {
 
   def addCoursePost = AuthenticatedInstructorAction { implicit request =>
     {
+      implicit val messages = messagesAPI.preferred(request)
       newCourseForm.bindFromRequest().fold(
         formWithErrors => {
           Future { Ok(views.html.addCourse(formWithErrors)) }
