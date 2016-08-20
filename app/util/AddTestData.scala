@@ -9,6 +9,7 @@ import scala.concurrent.Future
 import models._
 import Tables._
 import java.sql.Timestamp
+import java.time.LocalDateTime
 
 /**
  * @author mlewis
@@ -61,10 +62,10 @@ object AddTestData extends App {
       FunctionAssoc += FunctionAssocRow(Some(1),Some(1)),
       FunctionAssoc += FunctionAssocRow(Some(2),Some(2)),
       FunctionAssoc += FunctionAssocRow(Some(2),Some(3)),
-      McAnswers += McAnswersRow(Some(1),Some(1),Some(1),0,true),
-      McAnswers += McAnswersRow(Some(1),Some(1),Some(2),0,false),
-      CodeAnswers += CodeAnswersRow(Some(1),Some(1),1,1,"code",false),
-      CodeAnswers += CodeAnswersRow(Some(1),Some(1),1,1,"code",true)
+      McAnswers += McAnswersRow(Some(1),Some(1),Some(1),0,true, Timestamp.valueOf(LocalDateTime.now())),
+      McAnswers += McAnswersRow(Some(1),Some(1),Some(2),0,false, Timestamp.valueOf(LocalDateTime.now())),
+      CodeAnswers += CodeAnswersRow(Some(1),Some(1),1,1,"code",false, Timestamp.valueOf(LocalDateTime.now())),
+      CodeAnswers += CodeAnswersRow(Some(1),Some(1),1,1,"code",true, Timestamp.valueOf(LocalDateTime.now()))
     )), Duration.Inf)
     db.close()
   

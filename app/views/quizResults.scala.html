@@ -1,0 +1,26 @@
+@* quizResults Template File *@
+@(results: QuizResultsData)(implicit flash:Flash)
+
+@main("Quiz Results", true) {
+	<h2>Results for @{results.name}</h2>
+	<p>@{results.description}</p>
+	@if(results.multipleChoiceResults.nonEmpty) { <h4>Multiple Choice</h4> }
+	@for(mcr <- results.multipleChoiceResults) {
+		<p>@{mcr.spec.prompt}</p>
+		<table border="1">
+			@for((answer, index) <- mcr.spec.options.zipWithIndex) {
+				<tr><td>@if(index==mcr.spec.correct-1) {<b>@answer</b>} else {@answer}</td><td>@{mcr.answerCount(index)}</td></tr>
+			}
+		</table>
+		<br><br>
+	}
+	@if(results.codeQuestionResults.nonEmpty) { 
+		<h4>Coding</h4>
+		<table border="1">
+			<tr><th>Prompt</th><th>Submissions</th><th>Students Submitting</th><th>Correct</th></tr>
+			@for(cqr <- results.codeQuestionResults) {
+				<tr><td>@{cqr.prompt}</td><td>@{cqr.numSubmissions}</td><td>@{cqr.numStudentsSubmitting}</td><td>@{cqr.numCorrect}</td></tr>
+			}
+		</table>
+	}
+}

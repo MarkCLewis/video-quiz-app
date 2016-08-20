@@ -125,3 +125,7 @@ CREATE TABLE code_answers (
 	correct BOOLEAN NOT NULL);
 
 GRANT ALL ON video_quizzes.* TO 'mlewis'@'localhost';
+
+ALTER TABLE mc_answers ADD COLUMN answer_time TIMESTAMP NOT NULL DEFAULT '2000-01-01 00:00:00';
+	
+ALTER TABLE code_answers ADD COLUMN answer_time TIMESTAMP NOT NULL DEFAULT '2000-01-01 00:00:00';

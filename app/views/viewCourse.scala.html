@@ -3,26 +3,13 @@
 
 @main("View Course", true) {
 	<h2>@courseData.row.code-@courseData.row.section-@courseData.row.semester</h2>
-	<h3>Students</h3>
-	<p>Add Student (TODO)</p>
-	<table border="1">
-		<tr><th>Username</th><th>Correct (out of @courseData.totalQuestions)</th><th>Remove</th></tr>
-		@for(student <- courseData.students.sortBy(_.username.drop(1))) {
-			<tr>
-				<td><a href="@routes.Application.instructorQuizList(student.userid)">@student.username</a></td>
-				<td>@student.correct</td>
-				<td><button type="button" onclick="removeStudentFromCourse(@student.userid,@courseData.row.courseid)">Remove</button></td>
-			</tr>
-		}
-	</table>
-	<hr>
 	<h3>Quizzes</h3>
 	<p>Add Quiz (TODO)</p>
 	<table border="1">
 		<tr><th>Name</th><th>Close Time</th><th>Remove</th></tr>
 		@for(quiz <- courseData.quizzes) {
 			<tr>
-				<td>@quiz.row.name</td>
+				<td><a href="@routes.Application.quizResults(quiz.row.quizid, courseData.row.courseid)">@quiz.row.name</a></td>
 				<td>@quiz.time</td>
 				<td><button type="button" onclick="removeQuizFromCourse(@quiz.row.quizid,@courseData.row.courseid)">Remove</button></td>
 			</tr>
@@ -37,6 +24,19 @@
 			<tr>
 				<td>@instructor.username</td>
 				<td><button type="button" onclick="removeInstructorFromCourse(@instructor.userid,@courseData.row.courseid)">Remove</button></td>
+			</tr>
+		}
+	</table>
+	<hr>
+	<h3>Students</h3>
+	<p>Add Student (TODO)</p>
+	<table border="1">
+		<tr><th>Username</th><th>Correct (out of @courseData.totalQuestions)</th><th>Remove</th></tr>
+		@for(student <- courseData.students.sortBy(_.username.drop(1))) {
+			<tr>
+				<td><a href="@routes.Application.instructorQuizList(student.userid)">@student.username</a></td>
+				<td>@student.correct</td>
+				<td><button type="button" onclick="removeStudentFromCourse(@student.userid,@courseData.row.courseid)">Remove</button></td>
 			</tr>
 		}
 	</table>

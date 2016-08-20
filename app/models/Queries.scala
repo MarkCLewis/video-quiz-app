@@ -239,7 +239,7 @@ object Queries {
         val fspec = ProblemSpec.writeFunction(row.funcQuestionId, db)
         val userAnswers = db.run((for{
           ans <- CodeAnswers
-          if ans.userid === userid && ans.quizid === quizid && ans.questionId === row.funcQuestionId && ans.questionType === 1
+          if ans.userid === userid && ans.quizid === quizid && ans.questionId === row.funcQuestionId && ans.questionType === ProblemSpec.FunctionType
         } yield ans).result)
         for {
           spec <- fspec
@@ -260,7 +260,7 @@ object Queries {
         val fspec = ProblemSpec.writeLambda(row.lambdaQuestionId, db)
         val userAnswers = db.run((for{
           ans <- CodeAnswers
-          if ans.userid === userid && ans.quizid === quizid && ans.questionId === row.lambdaQuestionId && ans.questionType === 2
+          if ans.userid === userid && ans.quizid === quizid && ans.questionId === row.lambdaQuestionId && ans.questionType === ProblemSpec.LambdaType
         } yield ans).result)
         for {
           spec <- fspec
@@ -281,7 +281,7 @@ object Queries {
         val fspec = ProblemSpec.writeExpression(row.exprQuestionId, db)
         val userAnswers = db.run((for{
           ans <- CodeAnswers
-          if ans.userid === userid && ans.quizid === quizid && ans.questionId === row.exprQuestionId && ans.questionType === 3
+          if ans.userid === userid && ans.quizid === quizid && ans.questionId === row.exprQuestionId && ans.questionType === ProblemSpec.ExpressionType
         } yield ans).result)
         for {
           spec <- fspec
@@ -334,5 +334,124 @@ object Queries {
         lqs <- lambdaSpecs
         eqs <- exprSpecs
     } yield { mcqs ++ fqs ++ lqs ++ eqs }
+  }
+  
+  def quizResults(quizid: Int, courseid: Int, db: Database):Future[QuizResultsData] = {
+    val quizRow = db.run(Quizzes.filter(_.quizid === quizid).result.head)
+    val mcQuestions = multipleChoiceResultsData(quizid, courseid, db)
+    val codeQuestions = codeQuestionResultsData(quizid, courseid, db)
+    for {
+      qr <- quizRow
+      mc <- mcQuestions
+      cq <- codeQuestions
+    } yield QuizResultsData(quizid,courseid,qr.name,qr.description,mc,cq)
+  }
+  
+  def multipleChoiceResultsData(quizid:Int, courseid:Int, db: Database):Future[Seq[MultipleChoiceResultsData]] = {
+    val rows = db.run {
+      (for {
+        (mcq,mca) <- MultipleChoiceQuestions join MultipleChoiceAssoc on (_.mcQuestionId === _.mcQuestionId)
+        if mca.quizid === quizid
+      } yield mcq).result
+    }
+    val data = rows.flatMap(s => Future.sequence { 
+      for {
+        row <- s
+      } yield {
+        val fspec = ProblemSpec.multipleChoice(row.mcQuestionId, db)
+        val courseAnswer = db.run((for{
+          uca <- UserCourseAssoc
+          if uca.courseid === courseid
+          ans <- McAnswers
+          if ans.userid === uca.userid && ans.quizid === quizid && ans.mcQuestionId === row.mcQuestionId
+        } yield ans.selection).result)
+        for{
+          spec <- fspec
+          ans <- courseAnswer
+        } yield {
+          val ansCounts = Array.fill(spec.options.length)(0)
+          for(a <- ans) ansCounts(a-1) += 1
+          MultipleChoiceResultsData(spec, ansCounts)
+        }
+      }
+    })
+    data
+  }
+  
+  def codeQuestionResultsData(quizid:Int, courseid:Int, db: Database):Future[Seq[CodeQuestionResultsData]] = {
+    val funcRows = db.run {
+      (for {
+        (fq,fa) <- FunctionQuestions join FunctionAssoc on (_.funcQuestionId === _.funcQuestionId)
+        if fa.quizid === quizid
+      } yield fq).result
+    }
+    val funcData = funcRows.flatMap(s => Future.sequence { 
+      for {
+        row <- s
+      } yield {
+        val fspec = ProblemSpec.writeFunction(row.funcQuestionId, db)
+        val courseAnswers = db.run((for{
+          uca <- UserCourseAssoc
+          if uca.courseid === courseid
+          ans <- CodeAnswers
+          if ans.userid === uca.userid && ans.quizid === quizid && ans.questionId === row.funcQuestionId && ans.questionType === ProblemSpec.FunctionType
+        } yield ans).result)
+        for {
+          spec <- fspec
+          ans <- courseAnswers
+        } yield CodeQuestionResultsData(spec.prompt, ans.length, ans.map(_.userid).distinct.length, ans.count(_.correct))
+      }
+    })
+    val lambdaRows = db.run {
+      (for {
+        (lq,la) <- LambdaQuestions join LambdaAssoc on (_.lambdaQuestionId === _.lambdaQuestionId)
+        if la.quizid === quizid
+      } yield lq).result
+    }
+    val lambdaData = lambdaRows.flatMap(s => Future.sequence { 
+      for {
+        row <- s
+      } yield {
+        val fspec = ProblemSpec.writeLambda(row.lambdaQuestionId, db)
+        val courseAnswers = db.run((for{
+          uca <- UserCourseAssoc
+          if uca.courseid === courseid
+          ans <- CodeAnswers
+          if ans.userid === uca.userid && ans.quizid === quizid && ans.questionId === row.lambdaQuestionId && ans.questionType === ProblemSpec.LambdaType
+        } yield ans).result)
+        for {
+          spec <- fspec
+          ans <- courseAnswers
+        } yield CodeQuestionResultsData(spec.prompt, ans.length, ans.map(_.userid).distinct.length, ans.count(_.correct))
+      }
+    })
+    val exprRows = db.run {
+      (for {
+        (eq,ea) <- ExpressionQuestions join ExpressionAssoc on (_.exprQuestionId === _.exprQuestionId)
+        if ea.quizid === quizid
+      } yield eq).result
+    }
+    val exprData = exprRows.flatMap(s => Future.sequence { 
+      for {
+        row <- s
+      } yield {
+        val fspec = ProblemSpec.writeExpression(row.exprQuestionId, db)
+        val userAnswers = db.run((for{
+          uca <- UserCourseAssoc
+          if uca.courseid === courseid
+          ans <- CodeAnswers
+          if ans.userid === uca.userid && ans.quizid === quizid && ans.questionId === row.exprQuestionId && ans.questionType === ProblemSpec.ExpressionType
+        } yield ans).result)
+        for {
+          spec <- fspec
+          ans <- userAnswers
+        } yield CodeQuestionResultsData(spec.prompt, ans.length, ans.map(_.userid).distinct.length, ans.count(_.correct))
+      }
+    })
+    for {
+      fd <- funcData
+      ld <- lambdaData
+      ed <- exprData
+    } yield fd ++ ld ++ ed
   }
 }

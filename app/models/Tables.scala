@@ -25,17 +25,17 @@ trait Tables {
    *  @param questionType Database column question_type SqlType(INT)
    *  @param answer Database column answer SqlType(VARCHAR), Length(4000,true)
    *  @param correct Database column correct SqlType(BIT) */
-  case class CodeAnswersRow(userid: Option[Int] = None, quizid: Option[Int] = None, questionId: Int, questionType: Int, answer: String, correct: Boolean)
+  case class CodeAnswersRow(userid: Option[Int] = None, quizid: Option[Int] = None, questionId: Int, questionType: Int, answer: String, correct: Boolean, answerTime: java.sql.Timestamp)
   /** GetResult implicit for fetching CodeAnswersRow objects using plain SQL queries */
   implicit def GetResultCodeAnswersRow(implicit e0: GR[Option[Int]], e1: GR[Int], e2: GR[String], e3: GR[Boolean]): GR[CodeAnswersRow] = GR{
     prs => import prs._
-    CodeAnswersRow.tupled((<<?[Int], <<?[Int], <<[Int], <<[Int], <<[String], <<[Boolean]))
+    CodeAnswersRow.tupled((<<?[Int], <<?[Int], <<[Int], <<[Int], <<[String], <<[Boolean], <<[java.sql.Timestamp]))
   }
   /** Table description of table code_answers. Objects of this class serve as prototypes for rows in queries. */
   class CodeAnswers(_tableTag: Tag) extends Table[CodeAnswersRow](_tableTag, "code_answers") {
-    def * = (userid, quizid, questionId, questionType, answer, correct) <> (CodeAnswersRow.tupled, CodeAnswersRow.unapply)
+    def * = (userid, quizid, questionId, questionType, answer, correct, answerTime) <> (CodeAnswersRow.tupled, CodeAnswersRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (userid, quizid, Rep.Some(questionId), Rep.Some(questionType), Rep.Some(answer), Rep.Some(correct)).shaped.<>({r=>import r._; _3.map(_=> CodeAnswersRow.tupled((_1, _2, _3.get, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (userid, quizid, Rep.Some(questionId), Rep.Some(questionType), Rep.Some(answer), Rep.Some(correct), Rep.Some(answerTime)).shaped.<>({r=>import r._; _3.map(_=> CodeAnswersRow.tupled((_1, _2, _3.get, _4.get, _5.get, _6.get, _7.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column userid SqlType(INT), Default(None) */
     val userid: Rep[Option[Int]] = column[Option[Int]]("userid", O.Default(None))
@@ -49,6 +49,8 @@ trait Tables {
     val answer: Rep[String] = column[String]("answer", O.Length(4000,varying=true))
     /** Database column correct SqlType(BIT) */
     val correct: Rep[Boolean] = column[Boolean]("correct")
+    
+    val answerTime: Rep[java.sql.Timestamp] = column[java.sql.Timestamp]("answer_time")
 
     /** Foreign key referencing Quizzes (database name code_answers_ibfk_2) */
     lazy val quizzesFk = foreignKey("code_answers_ibfk_2", quizid, Quizzes)(r => Rep.Some(r.quizid), onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.Cascade)
@@ -267,17 +269,17 @@ trait Tables {
    *  @param mcQuestionId Database column mc_question_id SqlType(INT), Default(None)
    *  @param selection Database column selection SqlType(INT)
    *  @param correct Database column correct SqlType(BIT) */
-  case class McAnswersRow(userid: Option[Int] = None, quizid: Option[Int] = None, mcQuestionId: Option[Int] = None, selection: Int, correct: Boolean)
+  case class McAnswersRow(userid: Option[Int] = None, quizid: Option[Int] = None, mcQuestionId: Option[Int] = None, selection: Int, correct: Boolean, answerTime: java.sql.Timestamp)
   /** GetResult implicit for fetching McAnswersRow objects using plain SQL queries */
   implicit def GetResultMcAnswersRow(implicit e0: GR[Option[Int]], e1: GR[Int], e2: GR[Boolean]): GR[McAnswersRow] = GR{
     prs => import prs._
-    McAnswersRow.tupled((<<?[Int], <<?[Int], <<?[Int], <<[Int], <<[Boolean]))
+    McAnswersRow.tupled((<<?[Int], <<?[Int], <<?[Int], <<[Int], <<[Boolean], <<[java.sql.Timestamp]))
   }
   /** Table description of table mc_answers. Objects of this class serve as prototypes for rows in queries. */
   class McAnswers(_tableTag: Tag) extends Table[McAnswersRow](_tableTag, "mc_answers") {
-    def * = (userid, quizid, mcQuestionId, selection, correct) <> (McAnswersRow.tupled, McAnswersRow.unapply)
+    def * = (userid, quizid, mcQuestionId, selection, correct, answerTime) <> (McAnswersRow.tupled, McAnswersRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (userid, quizid, mcQuestionId, Rep.Some(selection), Rep.Some(correct)).shaped.<>({r=>import r._; _4.map(_=> McAnswersRow.tupled((_1, _2, _3, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (userid, quizid, mcQuestionId, Rep.Some(selection), Rep.Some(correct), Rep.Some(answerTime)).shaped.<>({r=>import r._; _4.map(_=> McAnswersRow.tupled((_1, _2, _3, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column userid SqlType(INT), Default(None) */
     val userid: Rep[Option[Int]] = column[Option[Int]]("userid", O.Default(None))
@@ -289,6 +291,8 @@ trait Tables {
     val selection: Rep[Int] = column[Int]("selection")
     /** Database column correct SqlType(BIT) */
     val correct: Rep[Boolean] = column[Boolean]("correct")
+    
+    val answerTime: Rep[java.sql.Timestamp] = column[java.sql.Timestamp]("answer_time")
 
     /** Foreign key referencing MultipleChoiceQuestions (database name mc_answers_ibfk_3) */
     lazy val multipleChoiceQuestionsFk = foreignKey("mc_answers_ibfk_3", mcQuestionId, MultipleChoiceQuestions)(r => Rep.Some(r.mcQuestionId), onUpdate=ForeignKeyAction.NoAction, onDelete=ForeignKeyAction.Cascade)

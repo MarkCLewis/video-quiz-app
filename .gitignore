@@ -8,3 +8,4 @@ target
 .sbtserver
 /RUNNING_PID
 .cache*
+silhouette.conf

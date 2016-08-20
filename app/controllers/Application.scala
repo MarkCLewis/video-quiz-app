@@ -4,13 +4,15 @@ import play.api._
 import play.api.mvc._
 import play.api.data.Forms._
 import play.api.data.Form
-import models._
-import Tables._
 import play.api.db.slick.DatabaseConfigProvider
+import play.api.i18n.MessagesApi
+import play.api.libs.concurrent.Execution.Implicits._
+
 import slick.driver.JdbcProfile
 import slick.driver.MySQLDriver.api._
+
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+
 import java.sql.Timestamp
 import java.util.Date
 import java.time.format.DateTimeFormatter
@@ -18,7 +20,9 @@ import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.ZoneId
 import javax.inject.Inject
-import play.api.i18n.MessagesApi
+
+import models._
+import Tables._
 
 class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, messagesAPI: MessagesApi) extends Controller {
   val dbConfig = dbConfigProvider.get[JdbcProfile]
@@ -37,8 +41,10 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
       "Instructor Names" -> text,
       "Student Data" -> nonEmptyText)(NewCourseData.apply)(NewCourseData.unapply))
 
+  import ControlHelpers._
+      
   // GET Actions
-
+      
   def index = Action(implicit request => {
     implicit val messages = messagesAPI.preferred(request)
     Ok(views.html.mainMenu(userForm))
@@ -167,6 +173,10 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
   def viewCourse(courseid: Int) = AuthenticatedInstructorAction { implicit request =>
     Queries.loadCourseData(courseid, dbConfig.db).map(cd => Ok(views.html.viewCourse(cd)))
   }
+  
+  def quizResults(quizid: Int, courseid:Int) = AuthenticatedInstructorAction { implicit request =>
+    Queries.quizResults(quizid, courseid, dbConfig.db).map(qr => Ok(views.html.quizResults(qr)))
+  } 
 
   def setupDatabase = Action { implicit request =>
     dbConfig.db.run(Users.filter(_.username === "mlewis").result).map(s =>
@@ -194,10 +204,10 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
           FunctionAssoc += FunctionAssocRow(Some(1), Some(1)),
           FunctionAssoc += FunctionAssocRow(Some(2), Some(2)),
           FunctionAssoc += FunctionAssocRow(Some(2), Some(3)),
-          McAnswers += McAnswersRow(Some(1), Some(1), Some(1), 0, true),
-          McAnswers += McAnswersRow(Some(1), Some(1), Some(2), 0, false),
-          CodeAnswers += CodeAnswersRow(Some(1), Some(1), 1, 1, "code", false),
-          CodeAnswers += CodeAnswersRow(Some(1), Some(1), 1, 1, "code", true)))
+          McAnswers += McAnswersRow(Some(1), Some(1), Some(1), 0, true, Timestamp.valueOf(LocalDateTime.now())),
+          McAnswers += McAnswersRow(Some(1), Some(1), Some(2), 0, false, Timestamp.valueOf(LocalDateTime.now())),
+          CodeAnswers += CodeAnswersRow(Some(1), Some(1), 1, 1, "code", false, Timestamp.valueOf(LocalDateTime.now())),
+          CodeAnswers += CodeAnswersRow(Some(1), Some(1), 1, 1, "code", true, Timestamp.valueOf(LocalDateTime.now()))))
       })
     Ok("Setup complete")
   }
@@ -211,7 +221,7 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
         Future { Ok(views.html.mainMenu(formWithErrors)) }
       },
       value => {
-        val db = dbConfig.db
+//        val db = dbConfig.db
         Queries.validLogin(value, db).flatMap(_ match {
           case -1 =>
             Future(Redirect(routes.Application.index))
@@ -241,13 +251,13 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
             println("You answered " + params(key)(0))
             val correct = pspec.map(_.checkResponse(params(key)(0)))
             val selection = try { params(key)(0).toInt } catch { case e: NumberFormatException => -1 }
-            correct.map(c => db.run(McAnswers += McAnswersRow(Some(userid), Some(quizid), Some(mcid), selection, c)))
+            correct.map(c => db.run(McAnswers += McAnswersRow(Some(userid), Some(quizid), Some(mcid), selection, c, Timestamp.valueOf(LocalDateTime.now()))))
           }
           for (key <- params.keys; if key.startsWith("code-")) {
             val Array(codeid, qtype) = key.drop(5).split("-")
             val pspec = ProblemSpec(qtype.toInt, codeid.toInt, db)
             val correct = pspec.map(_.checkResponse(params(key)(0)))
-            correct.map(c => db.run(CodeAnswers += CodeAnswersRow(Some(userid), Some(quizid), codeid.toInt, qtype.toInt, params(key)(0), c)))
+            correct.map(c => db.run(CodeAnswers += CodeAnswersRow(Some(userid), Some(quizid), codeid.toInt, qtype.toInt, params(key)(0), c, Timestamp.valueOf(LocalDateTime.now()))))
           }
         case None =>
       }
@@ -513,40 +523,6 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
   }
 
   // Other methods
-
-  private def authenticate(request: Request[AnyContent]): Boolean = {
-    request.session.get("username") match {
-      case None => false
-      case Some(uname) => true
-    }
-  }
-
-  private def isInstructor(request: Request[AnyContent]): Boolean = {
-    request.session.get("instructor") match {
-      case Some("yes") => true
-      case _ => false
-    }
-  }
-
-  private def AuthenticatedAction(f: Request[AnyContent] => Future[Result]): Action[AnyContent] = {
-    Action.async { request =>
-      if (authenticate(request)) {
-        f(request)
-      } else {
-        Future { Redirect(routes.Application.index()) }
-      }
-    }
-  }
-
-  private def AuthenticatedInstructorAction(f: Request[AnyContent] => Future[Result]): Action[AnyContent] = {
-    Action.async { request =>
-      if (authenticate(request) && isInstructor(request)) {
-        f(request)
-      } else {
-        Future { Redirect(routes.Application.index()) }
-      }
-    }
-  }
   
   private def gotoQuizList(uid: Int)(implicit request: Request[AnyContent]) = {
     val db = dbConfig.db

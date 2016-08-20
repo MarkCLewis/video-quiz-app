@@ -33,6 +33,8 @@ GET		/addCourse					controllers.Application.addCourse
 
 GET		/viewCourse					controllers.Application.viewCourse(courseid: Int)
 
+GET		/quizResults				controllers.Application.quizResults(quizid: Int, courseid: Int)
+
 POST	/submitQuiz					controllers.Application.submitQuiz
 
 POST	/addCoursePost				controllers.Application.addCoursePost
@@ -73,3 +75,9 @@ GET		/setupDatabase				controllers.Application.setupDatabase
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+
+#GET		/google						controllers.AuthenticationController.authenticate(provider)
+
+#GET		/signIn						controllers.AuthenticationController.view
+
+GET		/signIn/google				controllers.AuthenticationController.authenticateGoogle

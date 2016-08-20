@@ -176,6 +176,10 @@ case class WriteExpression(id: Int, prompt: String, correctCode: String, varSpec
   val typeValue = ProblemSpec.ExpressionType
 }
 /*
+
+Parson's problem
+
+
 case class IOCode(prompt: String) extends ProblemSpec {
   def checkResponse(response: String): Boolean = ???
 }
