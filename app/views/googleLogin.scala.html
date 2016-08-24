@@ -1,0 +1,12 @@
+@(userForm:Form[Tables.UsersRow])(implicit flash:Flash, messages: Messages)
+
+@main("Main Menu", false) {
+	<h3>Login</h3>
+
+    <div>
+       <a title="Sign in with Google" href="@routes.AuthenticationController.authenticateGoogle" class="provider google">
+         Login with Google
+       </a>
+    </div>
+ 
+}

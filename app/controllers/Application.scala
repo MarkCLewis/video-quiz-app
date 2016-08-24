@@ -47,7 +47,12 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
       
   def index = Action(implicit request => {
     implicit val messages = messagesAPI.preferred(request)
-    Ok(views.html.mainMenu(userForm))
+    Ok(views.html.googleLogin(userForm))
+  })
+
+  def oldLogin = Action(implicit request => {
+    implicit val messages = messagesAPI.preferred(request)
+    Ok(views.html.oldLogin(userForm))
   })
 
   def quizList = AuthenticatedAction(implicit request => {
@@ -218,7 +223,7 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
     implicit val messages = messagesAPI.preferred(request)
     userForm.bindFromRequest().fold(
       formWithErrors => {
-        Future { Ok(views.html.mainMenu(formWithErrors)) }
+        Future { Ok(views.html.oldLogin(formWithErrors)) }
       },
       value => {
 //        val db = dbConfig.db

@@ -96,7 +96,6 @@ Future {
 for(i <- 1 to $numRuns) {
   $testCode
 }
-sys.exit(0)
 """
   }
 
@@ -108,7 +107,7 @@ sys.exit(0)
     println(nestedCode)
     pw.println(nestedCode)
     pw.close
-    val process = s"scala ${tmpFile.getAbsolutePath()}".run() //  -J-Djava.security.manager
+    val process = s"scala -J-Djava.security.manager -J-Djava.security.policy=mypolicy ${tmpFile.getAbsolutePath()}".run() 
     val ret = process.exitValue == 0
     println("Done running - " + ret)
     ret

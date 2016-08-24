@@ -49,7 +49,7 @@ class AuthenticationController @Inject() (
   silhouette: Silhouette[DefaultEnv],
   dbConfigProvider: DatabaseConfigProvider,
   googleProvider: GoogleProvider)
-  extends Controller with I18nSupport with Logger {
+  extends Controller with I18nSupport {
   
   val dbConfig = dbConfigProvider.get[JdbcProfile]
   implicit val db = dbConfig.db
@@ -91,7 +91,7 @@ class AuthenticationController @Inject() (
         }
     .recover {
       case e: ProviderException =>
-        logger.error("Unexpected provider error", e)
+        println("Unexpected provider error", e)
         Redirect(routes.Application.index()).flashing("error" -> Messages("could.not.authenticate"))
     }
   }
