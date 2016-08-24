@@ -30,6 +30,8 @@
 						case lis:ListIntSpec => listIntSpecEdit(lis)
 						case ais:ArrayIntSpec => arrayIntSpecEdit(ais)
 						case lss:ListStringSpec => listStringSpecEdit(lss)
+						case aais:ArrayArrayIntSpec => arrayArrayIntSpecEdit(aais)
+						case aads:ArrayArrayDoubleSpec => arrayArrayDoubleSpecEdit(aads)
 					}}
 				</li>
 			}
@@ -51,6 +53,8 @@
 			<option value="@VariableSpec.IntListSpecType">List[Int]</option>
 			<option value="@VariableSpec.IntArraySpecType">Array[Int]</option>
 			<option value="@VariableSpec.StringListSpecType">List[String]</option>
+			<option value="@VariableSpec.IntArrayArraySpecType">Array[Array[Int]]</option>
+			<option value="@VariableSpec.DoubleArrayArraySpecType">Array[Array[Double]]</option>
 		</select>
 		<input type="submit"/>
 	</form></p>

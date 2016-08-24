@@ -354,6 +354,10 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
               (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
             case VariableSpec.StringListSpecType =>
               (None, None, Some(params(s"Length-$tn-$pn")(0).toInt), Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), Some(params(s"Gen-$tn-$pn")(0)))
+            case VariableSpec.IntArrayArraySpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
+            case VariableSpec.DoubleArrayArraySpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
           }
           println(s"$id, $tn, $pn - $min, $max, $length, $minLen, $maxLen, $genCode")
           db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === ProblemSpec.FunctionType && vs.paramNumber === pn).
@@ -396,6 +400,10 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
               (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
             case VariableSpec.StringListSpecType =>
               (None, None, Some(params(s"Length-$tn-$pn")(0).toInt), Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), Some(params(s"Gen-$tn-$pn")(0)))
+            case VariableSpec.IntArrayArraySpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
+            case VariableSpec.DoubleArrayArraySpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
           }
           db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === ProblemSpec.LambdaType && vs.paramNumber === pn).
               update(VariableSpecificationsRow(id, ProblemSpec.LambdaType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))
@@ -437,6 +445,10 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
               (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
             case VariableSpec.StringListSpecType =>
               (None, None, Some(params(s"Length-$tn-$pn")(0).toInt), Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), Some(params(s"Gen-$tn-$pn")(0)))
+            case VariableSpec.IntArrayArraySpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
+            case VariableSpec.DoubleArrayArraySpecType =>
+              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
           }
           db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === ProblemSpec.ExpressionType && vs.paramNumber === pn).
               update(VariableSpecificationsRow(id, ProblemSpec.ExpressionType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))

@@ -108,7 +108,7 @@ sys.exit(0)
     println(nestedCode)
     pw.println(nestedCode)
     pw.close
-    val process = s"scala ${tmpFile.getAbsolutePath()}".run()
+    val process = s"scala ${tmpFile.getAbsolutePath()}".run() //  -J-Djava.security.manager
     val ret = process.exitValue == 0
     println("Done running - " + ret)
     ret

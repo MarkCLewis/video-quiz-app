@@ -1,0 +1,4 @@
+https://mlewis-Precision-M4700:9002 {
+	log access.log
+	proxy / localhost:9000
+}

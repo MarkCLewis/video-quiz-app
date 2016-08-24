@@ -9,3 +9,4 @@ target
 /RUNNING_PID
 .cache*
 silhouette.conf
+access.log
