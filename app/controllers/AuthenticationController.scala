@@ -62,32 +62,39 @@ class AuthenticationController @Inject() (
    * @return The result to display.
    */
   def authenticateGoogle = Action.async { implicit request =>
+    println("Authenticating Google")
     googleProvider.authenticate().flatMap {
-          case Left(result) => Future.successful(result)
-          case Right(authInfo) => for {
-            profile <- googleProvider.retrieveProfile(authInfo)
-            authenticator <- silhouette.env.authenticatorService.create(profile.loginInfo)
-            value <- silhouette.env.authenticatorService.init(authenticator)
-            action <- profile.email match {
-              case Some(TrinityEmail(email)) =>
-                for {
-                  value <- Queries.fetchUserByName(email, db)
-                  n = value.userid
-                  instructorCourses <- Queries.instructorCourseIds(n, db)
-                } yield instructorCourses match {
-                  case Seq() =>
-                    Redirect(routes.Application.quizList).withSession(request.session + ("username" -> value.username) + ("userid" -> n.toString))
-                  case _ =>
-                    Redirect(routes.Application.instructorPage).withSession(request.session + ("username" -> value.username) + ("userid" -> n.toString) + ("instructor" -> "yes"))
-                }
-              case _ => 
-                Future.successful(Redirect(routes.Application.index()).flashing("message" -> "Invalid Login"))
+          case Left(result) =>
+            println("We went left with "+result)
+            Future.successful(result)
+          case Right(authInfo) =>
+            println("Happy with "+authInfo)
+            for {
+              profile <- googleProvider.retrieveProfile(authInfo)
+              authenticator <- silhouette.env.authenticatorService.create(profile.loginInfo)
+              value <- silhouette.env.authenticatorService.init(authenticator)
+              action <- profile.email match {
+                case Some(TrinityEmail(email)) =>
+                  println("Matched "+email)
+                  for {
+                    value <- Queries.fetchUserByName(email, db)
+                    n = value.userid
+                    instructorCourses <- Queries.instructorCourseIds(n, db)
+                  } yield instructorCourses match {
+                    case Seq() =>
+                      Redirect(routes.Application.quizList).withSession(request.session + ("username" -> value.username) + ("userid" -> n.toString))
+                    case _ =>
+                      Redirect(routes.Application.instructorPage).withSession(request.session + ("username" -> value.username) + ("userid" -> n.toString) + ("instructor" -> "yes"))
+                  }
+                case email => 
+                  println(email)
+                  Future.successful(Redirect(routes.Application.index()).flashing("message" -> "Invalid Login"))
+              }
+              result <- silhouette.env.authenticatorService.embed(value, action)
+            } yield {
+              println(profile.email)
+              result
             }
-            result <- silhouette.env.authenticatorService.embed(value, action)
-          } yield {
-            println(profile.email)
-            result
-          }
         }
     .recover {
       case e: ProviderException =>

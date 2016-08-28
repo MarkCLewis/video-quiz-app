@@ -362,7 +362,7 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
             case VariableSpec.IntArrayArraySpecType =>
               (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
             case VariableSpec.DoubleArrayArraySpecType =>
-              (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
+              (Some(params(s"Min-$tn-$pn")(0).toDouble.toInt), Some(params(s"Max-$tn-$pn")(0).toDouble.toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
           }
           println(s"$id, $tn, $pn - $min, $max, $length, $minLen, $maxLen, $genCode")
           db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === ProblemSpec.FunctionType && vs.paramNumber === pn).
