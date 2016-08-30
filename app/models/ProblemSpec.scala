@@ -110,6 +110,7 @@ for(i <- 1 to $numRuns) {
     val process = s"scala -J-Djava.security.manager -J-Djava.security.policy=mypolicy ${tmpFile.getAbsolutePath()}".run() 
     val ret = process.exitValue == 0
     println("Done running - " + ret)
+    println("Exit value is " + process.exitValue)
     ret
   }
 }
@@ -135,7 +136,7 @@ case class MultipleChoice(id: Int, prompt: String, options: Seq[String], correct
 case class WriteFunction(id: Int, prompt: String, correctCode: String, functionName: String, varSpecs: Seq[VariableSpec], numRuns: Int) extends ProblemSpec {
   def checkResponse(response: String): Boolean = {
     val code = s"""
-      ${correctCode.replaceAll(functionName, functionName + "Correct")}
+      ${correctCode.replaceAll(functionName+"(", functionName + "Correct(")}
       $response
       ${varSpecs.map(_.codeGenerator).mkString("\n")}
       val theirFunc = $functionName(${varSpecs.map(_.name).mkString(",")})

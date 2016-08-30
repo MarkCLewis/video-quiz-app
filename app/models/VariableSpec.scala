@@ -131,7 +131,7 @@ case class ArrayArrayDoubleSpec(paramNumber:Int, name: String, minLen1:Int, maxL
 
   def codeGenerator(): String = {
     s"val $name = Array.fill(util.Random.nextInt(($maxLen1)-($minLen1))+($minLen1),"+
-      s"util.Random.nextInt(($maxLen2)-($minLen2))+($minLen2))(math.random()*(($max)-($min))+($min))"
+      s"util.Random.nextInt(($maxLen2)-($minLen2))+($minLen2))(math.random*(($max)-($min))+($min))"
   }
 }
 
