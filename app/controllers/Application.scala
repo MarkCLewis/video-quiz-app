@@ -258,7 +258,7 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
             val selection = try { params(key)(0).toInt } catch { case e: NumberFormatException => -1 }
             correct.map(c => db.run(McAnswers += McAnswersRow(Some(userid), Some(quizid), Some(mcid), selection, c, Timestamp.valueOf(LocalDateTime.now()))))
           }
-          for (key <- params.keys; if key.startsWith("code-")) {
+          for (key <- params.keys; if key.startsWith("code-") && params(key)(0).trim.nonEmpty) {
             val Array(codeid, qtype) = key.drop(5).split("-")
             val pspec = ProblemSpec(qtype.toInt, codeid.toInt, db)
             val correct = pspec.map(_.checkResponse(params(key)(0)))

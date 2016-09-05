@@ -136,7 +136,7 @@ case class MultipleChoice(id: Int, prompt: String, options: Seq[String], correct
 case class WriteFunction(id: Int, prompt: String, correctCode: String, functionName: String, varSpecs: Seq[VariableSpec], numRuns: Int) extends ProblemSpec {
   def checkResponse(response: String): Boolean = {
     val code = s"""
-      ${correctCode.replaceAll(functionName+"(", functionName + "Correct(")}
+      ${correctCode.replaceAll(functionName+"\\(", functionName + "Correct(")}
       $response
       ${varSpecs.map(_.codeGenerator).mkString("\n")}
       val theirFunc = $functionName(${varSpecs.map(_.name).mkString(",")})
