@@ -1,5 +1,5 @@
 @* viewCourse Template File *@
-@(courseData: CourseData)(implicit flash:Flash)
+@(courseData: CourseData)(implicit request: RequestHeader, flash:Flash)
 
 @main("View Course", true) {
 	<h2>@courseData.row.code-@courseData.row.section-@courseData.row.semester</h2>

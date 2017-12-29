@@ -1,4 +1,4 @@
-@(quizzes:Seq[(String,Seq[(Tables.QuizzesRow,java.sql.Timestamp,Int,Int)], Seq[(Tables.QuizzesRow,java.sql.Timestamp,Int,Int)])])(implicit flash:Flash)
+@(quizzes:Seq[(String,Seq[(Tables.QuizzesRow,java.sql.Timestamp,Int,Int)], Seq[(Tables.QuizzesRow,java.sql.Timestamp,Int,Int)])])(implicit request: RequestHeader, flash:Flash)
 
 @main("Quiz List", true) {
 	@for((cname,openQuizzes,completedQuizzes) <- quizzes) {

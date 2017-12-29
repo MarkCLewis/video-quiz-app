@@ -1,5 +1,5 @@
 @* viewQuiz Template File *@
-@(quiz:QuizData)(implicit flash:Flash)
+@(quiz:QuizData)(implicit request: RequestHeader, flash:Flash)
 
 @main("View " + quiz.name, true) {
 	<h2>View Quiz - @quiz.name</h2>

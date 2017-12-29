@@ -2,19 +2,19 @@ package models
 // AUTO-GENERATED Slick data model
 /** Stand-alone Slick data model for immediate use */
 object Tables extends {
-  val profile = slick.driver.MySQLDriver
+  val profile = slick.jdbc.MySQLProfile
 } with Tables
 
 /** Slick data model trait for extension, choice of backend or usage in the cake pattern. (Make sure to initialize this late.) */
 trait Tables {
-  val profile: slick.driver.JdbcProfile
+  val profile: slick.jdbc.JdbcProfile
   import profile.api._
   import slick.model.ForeignKeyAction
   // NOTE: GetResult mappers for plain SQL are only generated for tables where Slick knows how to map the types of all columns.
   import slick.jdbc.{GetResult => GR}
 
   /** DDL for all tables. Call .create to execute. */
-  lazy val schema = Array(CodeAnswers.schema, Courses.schema, ExpressionAssoc.schema, ExpressionQuestions.schema, FunctionAssoc.schema, FunctionQuestions.schema, LambdaAssoc.schema, LambdaQuestions.schema, McAnswers.schema, MultipleChoiceAssoc.schema, MultipleChoiceQuestions.schema, QuizCourseCloseAssoc.schema, Quizzes.schema, UserCourseAssoc.schema, Users.schema, VariableSpecifications.schema).reduceLeft(_ ++ _)
+  lazy val schema: profile.SchemaDescription = Array(CodeAnswers.schema, Courses.schema, ExpressionAssoc.schema, ExpressionQuestions.schema, FunctionAssoc.schema, FunctionQuestions.schema, LambdaAssoc.schema, LambdaQuestions.schema, McAnswers.schema, MultipleChoiceAssoc.schema, MultipleChoiceQuestions.schema, QuizCourseCloseAssoc.schema, Quizzes.schema, UserCourseAssoc.schema, Users.schema, VariableSpecifications.schema).reduceLeft(_ ++ _)
   @deprecated("Use .schema instead of .ddl", "3.0")
   def ddl = schema
 
@@ -24,15 +24,16 @@ trait Tables {
    *  @param questionId Database column question_id SqlType(INT)
    *  @param questionType Database column question_type SqlType(INT)
    *  @param answer Database column answer SqlType(VARCHAR), Length(4000,true)
-   *  @param correct Database column correct SqlType(BIT) */
+   *  @param correct Database column correct SqlType(BIT)
+   *  @param answerTime Database column answer_time SqlType(TIMESTAMP) */
   case class CodeAnswersRow(userid: Option[Int] = None, quizid: Option[Int] = None, questionId: Int, questionType: Int, answer: String, correct: Boolean, answerTime: java.sql.Timestamp)
   /** GetResult implicit for fetching CodeAnswersRow objects using plain SQL queries */
-  implicit def GetResultCodeAnswersRow(implicit e0: GR[Option[Int]], e1: GR[Int], e2: GR[String], e3: GR[Boolean]): GR[CodeAnswersRow] = GR{
+  implicit def GetResultCodeAnswersRow(implicit e0: GR[Option[Int]], e1: GR[Int], e2: GR[String], e3: GR[Boolean], e4: GR[java.sql.Timestamp]): GR[CodeAnswersRow] = GR{
     prs => import prs._
     CodeAnswersRow.tupled((<<?[Int], <<?[Int], <<[Int], <<[Int], <<[String], <<[Boolean], <<[java.sql.Timestamp]))
   }
   /** Table description of table code_answers. Objects of this class serve as prototypes for rows in queries. */
-  class CodeAnswers(_tableTag: Tag) extends Table[CodeAnswersRow](_tableTag, "code_answers") {
+  class CodeAnswers(_tableTag: Tag) extends profile.api.Table[CodeAnswersRow](_tableTag, Some("video_quizzes"), "code_answers") {
     def * = (userid, quizid, questionId, questionType, answer, correct, answerTime) <> (CodeAnswersRow.tupled, CodeAnswersRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = (userid, quizid, Rep.Some(questionId), Rep.Some(questionType), Rep.Some(answer), Rep.Some(correct), Rep.Some(answerTime)).shaped.<>({r=>import r._; _3.map(_=> CodeAnswersRow.tupled((_1, _2, _3.get, _4.get, _5.get, _6.get, _7.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
@@ -49,7 +50,7 @@ trait Tables {
     val answer: Rep[String] = column[String]("answer", O.Length(4000,varying=true))
     /** Database column correct SqlType(BIT) */
     val correct: Rep[Boolean] = column[Boolean]("correct")
-    
+    /** Database column answer_time SqlType(TIMESTAMP) */
     val answerTime: Rep[java.sql.Timestamp] = column[java.sql.Timestamp]("answer_time")
 
     /** Foreign key referencing Quizzes (database name code_answers_ibfk_2) */
@@ -72,7 +73,7 @@ trait Tables {
     CoursesRow.tupled((<<[Int], <<[String], <<[String], <<[Int]))
   }
   /** Table description of table courses. Objects of this class serve as prototypes for rows in queries. */
-  class Courses(_tableTag: Tag) extends Table[CoursesRow](_tableTag, "courses") {
+  class Courses(_tableTag: Tag) extends profile.api.Table[CoursesRow](_tableTag, Some("video_quizzes"), "courses") {
     def * = (courseid, code, semester, section) <> (CoursesRow.tupled, CoursesRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = (Rep.Some(courseid), Rep.Some(code), Rep.Some(semester), Rep.Some(section)).shaped.<>({r=>import r._; _1.map(_=> CoursesRow.tupled((_1.get, _2.get, _3.get, _4.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
@@ -99,7 +100,7 @@ trait Tables {
     ExpressionAssocRow.tupled((<<?[Int], <<?[Int]))
   }
   /** Table description of table expression_assoc. Objects of this class serve as prototypes for rows in queries. */
-  class ExpressionAssoc(_tableTag: Tag) extends Table[ExpressionAssocRow](_tableTag, "expression_assoc") {
+  class ExpressionAssoc(_tableTag: Tag) extends profile.api.Table[ExpressionAssocRow](_tableTag, Some("video_quizzes"), "expression_assoc") {
     def * = (quizid, exprQuestionId) <> (ExpressionAssocRow.tupled, ExpressionAssocRow.unapply)
 
     /** Database column quizid SqlType(INT), Default(None) */
@@ -128,7 +129,7 @@ trait Tables {
     ExpressionQuestionsRow.tupled((<<[Int], <<[String], <<[String], <<[String], <<[Int]))
   }
   /** Table description of table expression_questions. Objects of this class serve as prototypes for rows in queries. */
-  class ExpressionQuestions(_tableTag: Tag) extends Table[ExpressionQuestionsRow](_tableTag, "expression_questions") {
+  class ExpressionQuestions(_tableTag: Tag) extends profile.api.Table[ExpressionQuestionsRow](_tableTag, Some("video_quizzes"), "expression_questions") {
     def * = (exprQuestionId, prompt, correctCode, generalSetup, numRuns) <> (ExpressionQuestionsRow.tupled, ExpressionQuestionsRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = (Rep.Some(exprQuestionId), Rep.Some(prompt), Rep.Some(correctCode), Rep.Some(generalSetup), Rep.Some(numRuns)).shaped.<>({r=>import r._; _1.map(_=> ExpressionQuestionsRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
@@ -157,7 +158,7 @@ trait Tables {
     FunctionAssocRow.tupled((<<?[Int], <<?[Int]))
   }
   /** Table description of table function_assoc. Objects of this class serve as prototypes for rows in queries. */
-  class FunctionAssoc(_tableTag: Tag) extends Table[FunctionAssocRow](_tableTag, "function_assoc") {
+  class FunctionAssoc(_tableTag: Tag) extends profile.api.Table[FunctionAssocRow](_tableTag, Some("video_quizzes"), "function_assoc") {
     def * = (quizid, funcQuestionId) <> (FunctionAssocRow.tupled, FunctionAssocRow.unapply)
 
     /** Database column quizid SqlType(INT), Default(None) */
@@ -186,7 +187,7 @@ trait Tables {
     FunctionQuestionsRow.tupled((<<[Int], <<[String], <<[String], <<[String], <<[Int]))
   }
   /** Table description of table function_questions. Objects of this class serve as prototypes for rows in queries. */
-  class FunctionQuestions(_tableTag: Tag) extends Table[FunctionQuestionsRow](_tableTag, "function_questions") {
+  class FunctionQuestions(_tableTag: Tag) extends profile.api.Table[FunctionQuestionsRow](_tableTag, Some("video_quizzes"), "function_questions") {
     def * = (funcQuestionId, prompt, correctCode, functionName, numRuns) <> (FunctionQuestionsRow.tupled, FunctionQuestionsRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = (Rep.Some(funcQuestionId), Rep.Some(prompt), Rep.Some(correctCode), Rep.Some(functionName), Rep.Some(numRuns)).shaped.<>({r=>import r._; _1.map(_=> FunctionQuestionsRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
@@ -215,7 +216,7 @@ trait Tables {
     LambdaAssocRow.tupled((<<?[Int], <<?[Int]))
   }
   /** Table description of table lambda_assoc. Objects of this class serve as prototypes for rows in queries. */
-  class LambdaAssoc(_tableTag: Tag) extends Table[LambdaAssocRow](_tableTag, "lambda_assoc") {
+  class LambdaAssoc(_tableTag: Tag) extends profile.api.Table[LambdaAssocRow](_tableTag, Some("video_quizzes"), "lambda_assoc") {
     def * = (quizid, lambdaQuestionId) <> (LambdaAssocRow.tupled, LambdaAssocRow.unapply)
 
     /** Database column quizid SqlType(INT), Default(None) */
@@ -244,7 +245,7 @@ trait Tables {
     LambdaQuestionsRow.tupled((<<[Int], <<[String], <<[String], <<[String], <<[Int]))
   }
   /** Table description of table lambda_questions. Objects of this class serve as prototypes for rows in queries. */
-  class LambdaQuestions(_tableTag: Tag) extends Table[LambdaQuestionsRow](_tableTag, "lambda_questions") {
+  class LambdaQuestions(_tableTag: Tag) extends profile.api.Table[LambdaQuestionsRow](_tableTag, Some("video_quizzes"), "lambda_questions") {
     def * = (lambdaQuestionId, prompt, correctCode, returnType, numRuns) <> (LambdaQuestionsRow.tupled, LambdaQuestionsRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = (Rep.Some(lambdaQuestionId), Rep.Some(prompt), Rep.Some(correctCode), Rep.Some(returnType), Rep.Some(numRuns)).shaped.<>({r=>import r._; _1.map(_=> LambdaQuestionsRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
@@ -268,15 +269,16 @@ trait Tables {
    *  @param quizid Database column quizid SqlType(INT), Default(None)
    *  @param mcQuestionId Database column mc_question_id SqlType(INT), Default(None)
    *  @param selection Database column selection SqlType(INT)
-   *  @param correct Database column correct SqlType(BIT) */
+   *  @param correct Database column correct SqlType(BIT)
+   *  @param answerTime Database column answer_time SqlType(TIMESTAMP) */
   case class McAnswersRow(userid: Option[Int] = None, quizid: Option[Int] = None, mcQuestionId: Option[Int] = None, selection: Int, correct: Boolean, answerTime: java.sql.Timestamp)
   /** GetResult implicit for fetching McAnswersRow objects using plain SQL queries */
-  implicit def GetResultMcAnswersRow(implicit e0: GR[Option[Int]], e1: GR[Int], e2: GR[Boolean]): GR[McAnswersRow] = GR{
+  implicit def GetResultMcAnswersRow(implicit e0: GR[Option[Int]], e1: GR[Int], e2: GR[Boolean], e3: GR[java.sql.Timestamp]): GR[McAnswersRow] = GR{
     prs => import prs._
     McAnswersRow.tupled((<<?[Int], <<?[Int], <<?[Int], <<[Int], <<[Boolean], <<[java.sql.Timestamp]))
   }
   /** Table description of table mc_answers. Objects of this class serve as prototypes for rows in queries. */
-  class McAnswers(_tableTag: Tag) extends Table[McAnswersRow](_tableTag, "mc_answers") {
+  class McAnswers(_tableTag: Tag) extends profile.api.Table[McAnswersRow](_tableTag, Some("video_quizzes"), "mc_answers") {
     def * = (userid, quizid, mcQuestionId, selection, correct, answerTime) <> (McAnswersRow.tupled, McAnswersRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = (userid, quizid, mcQuestionId, Rep.Some(selection), Rep.Some(correct), Rep.Some(answerTime)).shaped.<>({r=>import r._; _4.map(_=> McAnswersRow.tupled((_1, _2, _3, _4.get, _5.get, _6.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
@@ -291,7 +293,7 @@ trait Tables {
     val selection: Rep[Int] = column[Int]("selection")
     /** Database column correct SqlType(BIT) */
     val correct: Rep[Boolean] = column[Boolean]("correct")
-    
+    /** Database column answer_time SqlType(TIMESTAMP) */
     val answerTime: Rep[java.sql.Timestamp] = column[java.sql.Timestamp]("answer_time")
 
     /** Foreign key referencing MultipleChoiceQuestions (database name mc_answers_ibfk_3) */
@@ -314,7 +316,7 @@ trait Tables {
     MultipleChoiceAssocRow.tupled((<<?[Int], <<?[Int]))
   }
   /** Table description of table multiple_choice_assoc. Objects of this class serve as prototypes for rows in queries. */
-  class MultipleChoiceAssoc(_tableTag: Tag) extends Table[MultipleChoiceAssocRow](_tableTag, "multiple_choice_assoc") {
+  class MultipleChoiceAssoc(_tableTag: Tag) extends profile.api.Table[MultipleChoiceAssocRow](_tableTag, Some("video_quizzes"), "multiple_choice_assoc") {
     def * = (quizid, mcQuestionId) <> (MultipleChoiceAssocRow.tupled, MultipleChoiceAssocRow.unapply)
 
     /** Database column quizid SqlType(INT), Default(None) */
@@ -349,7 +351,7 @@ trait Tables {
     MultipleChoiceQuestionsRow.tupled((<<[Int], <<[String], <<[String], <<[String], <<?[String], <<?[String], <<?[String], <<?[String], <<?[String], <<?[String], <<[Int]))
   }
   /** Table description of table multiple_choice_questions. Objects of this class serve as prototypes for rows in queries. */
-  class MultipleChoiceQuestions(_tableTag: Tag) extends Table[MultipleChoiceQuestionsRow](_tableTag, "multiple_choice_questions") {
+  class MultipleChoiceQuestions(_tableTag: Tag) extends profile.api.Table[MultipleChoiceQuestionsRow](_tableTag, Some("video_quizzes"), "multiple_choice_questions") {
     def * = (mcQuestionId, prompt, option1, option2, option3, option4, option5, option6, option7, option8, correctOption) <> (MultipleChoiceQuestionsRow.tupled, MultipleChoiceQuestionsRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = (Rep.Some(mcQuestionId), Rep.Some(prompt), Rep.Some(option1), Rep.Some(option2), option3, option4, option5, option6, option7, option8, Rep.Some(correctOption)).shaped.<>({r=>import r._; _1.map(_=> MultipleChoiceQuestionsRow.tupled((_1.get, _2.get, _3.get, _4.get, _5, _6, _7, _8, _9, _10, _11.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
@@ -391,7 +393,7 @@ trait Tables {
     QuizCourseCloseAssocRow.tupled((<<?[Int], <<?[Int], <<[java.sql.Timestamp]))
   }
   /** Table description of table quiz_course_close_assoc. Objects of this class serve as prototypes for rows in queries. */
-  class QuizCourseCloseAssoc(_tableTag: Tag) extends Table[QuizCourseCloseAssocRow](_tableTag, "quiz_course_close_assoc") {
+  class QuizCourseCloseAssoc(_tableTag: Tag) extends profile.api.Table[QuizCourseCloseAssocRow](_tableTag, Some("video_quizzes"), "quiz_course_close_assoc") {
     def * = (quizid, courseid, closeTime) <> (QuizCourseCloseAssocRow.tupled, QuizCourseCloseAssocRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = (quizid, courseid, Rep.Some(closeTime)).shaped.<>({r=>import r._; _3.map(_=> QuizCourseCloseAssocRow.tupled((_1, _2, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
@@ -413,26 +415,26 @@ trait Tables {
 
   /** Entity class storing rows of table Quizzes
    *  @param quizid Database column quizid SqlType(INT), AutoInc, PrimaryKey
-   *  @param description Database column description SqlType(VARCHAR), Length(4000,true)
-   *  @param name Database column name SqlType(VARCHAR), Length(80,true) */
-  case class QuizzesRow(quizid: Int, description: String, name: String)
+   *  @param name Database column name SqlType(VARCHAR), Length(80,true)
+   *  @param description Database column description SqlType(VARCHAR), Length(4000,true) */
+  case class QuizzesRow(quizid: Int, name: String, description: String)
   /** GetResult implicit for fetching QuizzesRow objects using plain SQL queries */
   implicit def GetResultQuizzesRow(implicit e0: GR[Int], e1: GR[String]): GR[QuizzesRow] = GR{
     prs => import prs._
     QuizzesRow.tupled((<<[Int], <<[String], <<[String]))
   }
   /** Table description of table quizzes. Objects of this class serve as prototypes for rows in queries. */
-  class Quizzes(_tableTag: Tag) extends Table[QuizzesRow](_tableTag, "quizzes") {
-    def * = (quizid, description, name) <> (QuizzesRow.tupled, QuizzesRow.unapply)
+  class Quizzes(_tableTag: Tag) extends profile.api.Table[QuizzesRow](_tableTag, Some("video_quizzes"), "quizzes") {
+    def * = (quizid, name, description) <> (QuizzesRow.tupled, QuizzesRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
-    def ? = (Rep.Some(quizid), Rep.Some(description), Rep.Some(name)).shaped.<>({r=>import r._; _1.map(_=> QuizzesRow.tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
+    def ? = (Rep.Some(quizid), Rep.Some(name), Rep.Some(description)).shaped.<>({r=>import r._; _1.map(_=> QuizzesRow.tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
 
     /** Database column quizid SqlType(INT), AutoInc, PrimaryKey */
     val quizid: Rep[Int] = column[Int]("quizid", O.AutoInc, O.PrimaryKey)
-    /** Database column description SqlType(VARCHAR), Length(4000,true) */
-    val description: Rep[String] = column[String]("description", O.Length(4000,varying=true))
     /** Database column name SqlType(VARCHAR), Length(80,true) */
     val name: Rep[String] = column[String]("name", O.Length(80,varying=true))
+    /** Database column description SqlType(VARCHAR), Length(4000,true) */
+    val description: Rep[String] = column[String]("description", O.Length(4000,varying=true))
   }
   /** Collection-like TableQuery object for table Quizzes */
   lazy val Quizzes = new TableQuery(tag => new Quizzes(tag))
@@ -448,7 +450,7 @@ trait Tables {
     UserCourseAssocRow.tupled((<<?[Int], <<?[Int], <<[Int]))
   }
   /** Table description of table user_course_assoc. Objects of this class serve as prototypes for rows in queries. */
-  class UserCourseAssoc(_tableTag: Tag) extends Table[UserCourseAssocRow](_tableTag, "user_course_assoc") {
+  class UserCourseAssoc(_tableTag: Tag) extends profile.api.Table[UserCourseAssocRow](_tableTag, Some("video_quizzes"), "user_course_assoc") {
     def * = (userid, courseid, role) <> (UserCourseAssocRow.tupled, UserCourseAssocRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = (userid, courseid, Rep.Some(role)).shaped.<>({r=>import r._; _3.map(_=> UserCourseAssocRow.tupled((_1, _2, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
@@ -479,7 +481,7 @@ trait Tables {
     UsersRow.tupled((<<[Int], <<[String], <<[String]))
   }
   /** Table description of table users. Objects of this class serve as prototypes for rows in queries. */
-  class Users(_tableTag: Tag) extends Table[UsersRow](_tableTag, "users") {
+  class Users(_tableTag: Tag) extends profile.api.Table[UsersRow](_tableTag, Some("video_quizzes"), "users") {
     def * = (userid, username, trinityid) <> (UsersRow.tupled, UsersRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = (Rep.Some(userid), Rep.Some(username), Rep.Some(trinityid)).shaped.<>({r=>import r._; _1.map(_=> UsersRow.tupled((_1.get, _2.get, _3.get)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))
@@ -513,7 +515,7 @@ trait Tables {
     VariableSpecificationsRow.tupled((<<[Int], <<[Int], <<[Int], <<[Int], <<[String], <<?[Int], <<?[Int], <<?[Int], <<?[Int], <<?[Int], <<?[String]))
   }
   /** Table description of table variable_specifications. Objects of this class serve as prototypes for rows in queries. */
-  class VariableSpecifications(_tableTag: Tag) extends Table[VariableSpecificationsRow](_tableTag, "variable_specifications") {
+  class VariableSpecifications(_tableTag: Tag) extends profile.api.Table[VariableSpecificationsRow](_tableTag, Some("video_quizzes"), "variable_specifications") {
     def * = (questionId, questionType, paramNumber, specType, name, min, max, length, minLength, maxLength, genCode) <> (VariableSpecificationsRow.tupled, VariableSpecificationsRow.unapply)
     /** Maps whole row to an option. Useful for outer joins. */
     def ? = (Rep.Some(questionId), Rep.Some(questionType), Rep.Some(paramNumber), Rep.Some(specType), Rep.Some(name), min, max, length, minLength, maxLength, genCode).shaped.<>({r=>import r._; _1.map(_=> VariableSpecificationsRow.tupled((_1.get, _2.get, _3.get, _4.get, _5.get, _6, _7, _8, _9, _10, _11)))}, (_:Any) =>  throw new Exception("Inserting into ? projection not supported."))

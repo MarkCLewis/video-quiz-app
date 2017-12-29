@@ -12,14 +12,17 @@ import com.mohiva.play.silhouette.api.services.IdentityService
 import com.mohiva.play.silhouette.impl.providers.oauth2.GoogleProvider
 
 import play.api.i18n.{ I18nSupport, Messages, MessagesApi }
-import play.api.libs.concurrent.Execution.Implicits._
-import play.api.mvc.{ Action, Controller }
+import play.api.mvc.{ Action, AbstractController }
 
 import scala.concurrent.Future
 import models.Queries
 import play.api.db.slick.DatabaseConfigProvider
-import slick.driver.JdbcProfile
-import slick.driver.MySQLDriver.api._
+import slick.jdbc.JdbcProfile
+import slick.jdbc.MySQLProfile.api._
+import play.api.mvc.ControllerComponents
+import play.api.mvc.AbstractController
+import play.api.db.slick.HasDatabaseConfigProvider
+import scala.concurrent.ExecutionContext
 
 case class User() extends Identity
 
@@ -45,14 +48,12 @@ class UserService extends IdentityService[User] {
  * @param webJarAssets The webjar assets implementation.
  */
 class AuthenticationController @Inject() (
-  val messagesApi: MessagesApi,
   silhouette: Silhouette[DefaultEnv],
-  dbConfigProvider: DatabaseConfigProvider,
-  googleProvider: GoogleProvider)
-  extends Controller with I18nSupport {
+  protected val dbConfigProvider: DatabaseConfigProvider,
+  googleProvider: GoogleProvider,
+  cc: ControllerComponents)(implicit ec: ExecutionContext)
+  extends AbstractController(cc) with I18nSupport with HasDatabaseConfigProvider[JdbcProfile] {
   
-  val dbConfig = dbConfigProvider.get[JdbcProfile]
-  implicit val db = dbConfig.db
   private val TrinityEmail = """(\w+)@trinity.edu""".r
 
   /**

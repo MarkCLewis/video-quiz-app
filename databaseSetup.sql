@@ -112,7 +112,8 @@ CREATE TABLE mc_answers (
 	mc_question_id INT,
 	FOREIGN KEY (mc_question_id) REFERENCES multiple_choice_questions (mc_question_id) ON DELETE CASCADE,
 	selection INT NOT NULL,
-	correct BOOLEAN NOT NULL);
+	correct BOOLEAN NOT NULL,
+	answer_time TIMESTAMP NOT NULL);
 	
 CREATE TABLE code_answers (
 	userid INT,
@@ -122,10 +123,7 @@ CREATE TABLE code_answers (
 	question_id INT NOT NULL,
 	question_type INT NOT NULL,
 	answer VARCHAR(4000) NOT NULL,
-	correct BOOLEAN NOT NULL);
+	correct BOOLEAN NOT NULL,
+	answer_time TIMESTAMP NOT NULL);
 
 GRANT ALL ON video_quizzes.* TO 'mlewis'@'localhost';
-
-ALTER TABLE mc_answers ADD COLUMN answer_time TIMESTAMP NOT NULL DEFAULT '2000-01-01 00:00:00';
-	
-ALTER TABLE code_answers ADD COLUMN answer_time TIMESTAMP NOT NULL DEFAULT '2000-01-01 00:00:00';

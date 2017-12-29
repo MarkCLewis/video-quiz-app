@@ -4,7 +4,9 @@
 	funcQuestions:Seq[Tables.FunctionQuestionsRow],
 	lambdaQuestions:Seq[Tables.LambdaQuestionsRow],
 	exprQuestions:Seq[Tables.ExpressionQuestionsRow]
-)(implicit flash:Flash)
+)(implicit request: RequestHeader, flash:Flash)
+
+@import views.html.helper.CSRF
 
 @main("Instructor Options", true) {
 	<h2>Instructor Options</h2>
@@ -41,7 +43,7 @@
 			  			}
 			  		</select>
 					<input type="datetime-local" name="qr-datetime-@qr.quizid" id="qr-datetime-@qr.quizid">
-					<button onclick="associateQuizWithCourse(@qr.quizid)">Add</button>
+					<button class="quizAdd" data-quizid="@qr.quizid">Add</button>
 			  	</td>
 			</tr>
 		}
@@ -61,7 +63,7 @@
 							<option value="@quiz.quizid">@quiz.name</option>
 						}
 					</select>
-					<button type="button" onclick="associateMCWithQuiz(@q.mcQuestionId)">Add</button>
+					<button class="assocMCWithQuiz" data-mcQuestionID="@q.mcQuestionId">Add</button>
 				</td>
 			</tr>
 		}
@@ -79,7 +81,7 @@
 							<option value="@quiz.quizid">@quiz.name</option>
 						}
 					</select>
-					<button type="button" onclick="associateFuncWithQuiz(@q.funcQuestionId)">Add</button>
+					<button class="assocFuncWithQuiz" data-funcQuestionID="@q.funcQuestionId">Add</button>
 				</td>
 			</tr>
 		}
@@ -97,7 +99,7 @@
 							<option value="@quiz.quizid">@quiz.name</option>
 						}
 					</select>
-					<button type="button" onclick="associateLambdaWithQuiz(@q.lambdaQuestionId)">Add</button>
+					<button class="assocLambdaWithQuiz" data-lambdaQuestionID="@q.lambdaQuestionId">Add</button>
 				</td>
 			</tr>
 		}
@@ -115,7 +117,7 @@
 							<option value="@quiz.quizid">@quiz.name</option>
 						}
 					</select>
-					<button type="button" onclick="associateExprWithQuiz(@q.exprQuestionId)">Add</button>
+					<button class="assocExprWithQuiz" data-exprQuestionID="@q.exprQuestionId">Add</button>
 				</td>
 			</tr>
 		}

@@ -5,10 +5,9 @@ import java.io.PrintWriter
 import sys.process._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
-import slick.driver.MySQLDriver.api._
+import slick.jdbc.MySQLProfile.api._
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
 import Tables._
 
 object ProblemSpec {
@@ -17,7 +16,7 @@ object ProblemSpec {
   val LambdaType = 2
   val ExpressionType = 3
 
-  def multipleChoice(id: Int, db: Database): Future[MultipleChoice] = {
+  def multipleChoice(id: Int, db: Database)(implicit ec: ExecutionContext): Future[MultipleChoice] = {
     val mcRow = db.run(MultipleChoiceQuestions.filter(_.mcQuestionId === id).result.head)
     mcRow.map(row => {
       val options = Seq(row.option1, row.option2) ++ Seq(row.option3, row.option4, row.option5, row.option6,
@@ -26,7 +25,7 @@ object ProblemSpec {
     })
   }
 
-  def writeFunction(id: Int, db: Database): Future[WriteFunction] = {
+  def writeFunction(id: Int, db: Database)(implicit ec: ExecutionContext): Future[WriteFunction] = {
     val funcRow = db.run(FunctionQuestions.filter(_.funcQuestionId === id).result.head)
     funcRow.flatMap(row => {
       val specs = db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === FunctionType)
@@ -35,7 +34,7 @@ object ProblemSpec {
     })
   }
 
-  def writeLambda(id: Int, db: Database): Future[WriteLambda] = {
+  def writeLambda(id: Int, db: Database)(implicit ec: ExecutionContext): Future[WriteLambda] = {
     val lambdaRow = db.run(LambdaQuestions.filter(_.lambdaQuestionId === id).result.head)
     lambdaRow.flatMap(row => {
       val specs = db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === LambdaType)
@@ -44,7 +43,7 @@ object ProblemSpec {
     })
   }
 
-  def writeExpression(id: Int, db: Database): Future[WriteExpression] = {
+  def writeExpression(id: Int, db: Database)(implicit ec: ExecutionContext): Future[WriteExpression] = {
     val exprRow = db.run(ExpressionQuestions.filter(_.exprQuestionId === id).result.head)
     exprRow.flatMap(row => {
       val specs = db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === ExpressionType)
@@ -53,7 +52,7 @@ object ProblemSpec {
     })
   }
 
-  def apply(questionType: Int, id: Int, db: Database): Future[ProblemSpec] = {
+  def apply(questionType: Int, id: Int, db: Database)(implicit ec: ExecutionContext): Future[ProblemSpec] = {
     questionType match {
       case MultipleChoiceType => // multiple choice
         multipleChoice(id, db)
@@ -66,19 +65,19 @@ object ProblemSpec {
     }
   }
   
-  def newWriteFunction(db:Database):Future[WriteFunction] = {
+  def newWriteFunction(db:Database)(implicit ec: ExecutionContext):Future[WriteFunction] = {
     db.run(FunctionQuestions += FunctionQuestionsRow(0,"","","",10)).flatMap(_ =>
       db.run(FunctionQuestions.map(_.funcQuestionId).max.result)).flatMap(id =>
         writeFunction(id.get,db))
   } 
   
-  def newWriteLambda(db:Database):Future[WriteLambda] = {
+  def newWriteLambda(db:Database)(implicit ec: ExecutionContext):Future[WriteLambda] = {
     db.run(LambdaQuestions += LambdaQuestionsRow(0,"","","",10)).flatMap(_ =>
       db.run(LambdaQuestions.map(_.lambdaQuestionId).max.result)).flatMap(id =>
         writeLambda(id.get,db))
   } 
   
-  def newWriteExpression(db:Database):Future[WriteExpression] = {
+  def newWriteExpression(db:Database)(implicit ec: ExecutionContext):Future[WriteExpression] = {
     db.run(ExpressionQuestions += ExpressionQuestionsRow(0,"","","",10)).flatMap(_ =>
       db.run(ExpressionQuestions.map(_.exprQuestionId).max.result)).flatMap(id =>
         writeExpression(id.get,db))

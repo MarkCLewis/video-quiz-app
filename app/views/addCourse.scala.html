@@ -1,8 +1,10 @@
 @* addCourse Template File *@
-@(newCourseForm:Form[NewCourseData])(implicit flash:Flash, messages: Messages)
+@(newCourseForm:Form[NewCourseData])(implicit request: MessagesRequestHeader, flash:Flash)
+
+@import helper._
 
 @main("Create New Course", true) {
-	@helper.form(action = routes.Application.addCoursePost) {
+	@helper.form(action = CSRF(routes.Application.addCoursePost)) {
 		@helper.inputText(newCourseForm("Course Code"))
 		<p>e.g. CSCI1320</p>
 		@helper.inputText(newCourseForm("Section"))

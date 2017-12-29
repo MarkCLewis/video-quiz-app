@@ -1,16 +1,20 @@
 package controllers
 
+import javax.inject._
+
 import play.api._
 import play.api.mvc._
 import play.api.data.Forms._
 import play.api.data.Form
+import play.api.db.slick.HasDatabaseConfigProvider
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.i18n.MessagesApi
-import play.api.libs.concurrent.Execution.Implicits._
 
-import slick.driver.JdbcProfile
-import slick.driver.MySQLDriver.api._
+import slick.jdbc.JdbcProfile
+import slick.jdbc.JdbcCapabilities
+import slick.jdbc.MySQLProfile.api._
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 import java.sql.Timestamp
@@ -24,9 +28,11 @@ import javax.inject.Inject
 import models._
 import Tables._
 
-class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, messagesAPI: MessagesApi) extends Controller {
-  val dbConfig = dbConfigProvider.get[JdbcProfile]
-  implicit val db = dbConfig.db
+class Application @Inject() (
+  protected val dbConfigProvider: DatabaseConfigProvider,
+  messagesAPI: MessagesApi,
+  mcc: MessagesControllerComponents)(implicit ec: ExecutionContext)
+  extends MessagesAbstractController(mcc) with HasDatabaseConfigProvider[JdbcProfile] {
 
   val userForm = Form(
     mapping(
@@ -42,48 +48,47 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
       "Student Data" -> nonEmptyText)(NewCourseData.apply)(NewCourseData.unapply))
 
   import ControlHelpers._
-      
+  
+  implicit val actionBuilder = Action
+
   // GET Actions
-      
+
   def index = Action(implicit request => {
-    implicit val messages = messagesAPI.preferred(request)
     Ok(views.html.googleLogin(userForm))
   })
 
   def oldLogin = Action(implicit request => {
-    implicit val messages = messagesAPI.preferred(request)
     Ok(views.html.oldLogin(userForm))
   })
 
-  def quizList = AuthenticatedAction(implicit request => {
+  def quizList = AuthenticatedAction { implicit request => 
     val uid = request.session.get("userid").getOrElse("-1").toInt
     gotoQuizList(uid)
-  })
-  
-  def instructorQuizList(uid:Int) = AuthenticatedInstructorAction { implicit request =>
+  }
+
+  def instructorQuizList(uid: Int) = AuthenticatedInstructorAction { implicit request =>
     gotoQuizList(uid)
   }
 
   def viewQuiz(quizid: Int) = AuthenticatedAction { implicit request =>
     {
-      val quizData = Queries.quizData(quizid, request.session.get("userid").getOrElse("-1").toInt, dbConfig.db)
+      val quizData = Queries.quizData(quizid, request.session.get("userid").getOrElse("-1").toInt, db)
       quizData.map(qd => Ok(views.html.viewQuiz(qd)))
     }
   }
 
   def takeQuiz(quizid: Int) = AuthenticatedAction { implicit request =>
     {
-      val quizData = Queries.quizData(quizid, request.session.get("userid").getOrElse("-1").toInt, dbConfig.db)
+      val quizData = Queries.quizData(quizid, request.session.get("userid").getOrElse("-1").toInt, db)
       quizData.map(qd => Ok(views.html.takeQuiz(qd)))
     }
   }
 
   def fetch(user: String) = AuthenticatedAction { implicit request =>
-    Queries.fetchUserByName(user, dbConfig.db).map(user => Ok(Queries.coursesFor(user.userid, dbConfig.db).toString()))
+    Queries.fetchUserByName(user, db).map(user => Ok(Queries.coursesFor(user.userid, db).toString()))
   }
 
   def instructorPage = AuthenticatedInstructorAction { implicit request =>
-    val db = dbConfig.db
     val courses = Queries.instructorCourseRows(request.session.get("userid").get.toInt, db)
     val quizzes = db.run(Quizzes.result)
     val mcQuestions = db.run(MultipleChoiceQuestions.result)
@@ -110,7 +115,6 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
     if (quizid < 1) {
       Future { Ok(views.html.editQuiz(QuizzesRow(quizid, null, null), false, Nil)) }
     } else {
-      val db = dbConfig.db
       val quizRow = db.run(Quizzes.filter(_.quizid === quizid).result.head)
       val mcAnswers = db.run(McAnswers.filter(_.quizid === quizid).result)
       val codeAnswers = db.run(CodeAnswers.filter(_.quizid === quizid).result)
@@ -128,7 +132,7 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
     if (id < 1) {
       Future { Ok(views.html.multipleChoiceEdit(MultipleChoice(id, "", Nil, -1))) }
     } else {
-      ProblemSpec.multipleChoice(id, dbConfig.db).map { ps =>
+      ProblemSpec.multipleChoice(id, db).map { ps =>
         Ok(views.html.multipleChoiceEdit(ps))
       }
     }
@@ -136,11 +140,11 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
 
   def writeFunctionEdit(id: Int) = AuthenticatedInstructorAction { implicit requext =>
     if (id < 1) {
-      ProblemSpec.newWriteFunction(dbConfig.db).map { ps =>
+      ProblemSpec.newWriteFunction(db).map { ps =>
         Redirect(routes.Application.writeFunctionEdit(ps.id))
       }
     } else {
-      ProblemSpec.writeFunction(id, dbConfig.db).map { ps =>
+      ProblemSpec.writeFunction(id, db).map { ps =>
         Ok(views.html.writeFunctionEdit(ps))
       }
     }
@@ -148,11 +152,11 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
 
   def writeLambdaEdit(id: Int) = AuthenticatedInstructorAction { implicit requext =>
     if (id < 1) {
-      ProblemSpec.newWriteLambda(dbConfig.db).map { ps =>
+      ProblemSpec.newWriteLambda(db).map { ps =>
         Redirect(routes.Application.writeLambdaEdit(ps.id))
       }
     } else {
-      ProblemSpec.writeLambda(id, dbConfig.db).map { ps =>
+      ProblemSpec.writeLambda(id, db).map { ps =>
         Ok(views.html.writeLambdaEdit(ps))
       }
     }
@@ -160,33 +164,35 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
 
   def writeExpressionEdit(id: Int) = AuthenticatedInstructorAction { implicit requext =>
     if (id < 1) {
-      ProblemSpec.newWriteExpression(dbConfig.db).map { ps =>
+      ProblemSpec.newWriteExpression(db).map { ps =>
         Redirect(routes.Application.writeExpressionEdit(ps.id))
       }
     } else {
-      ProblemSpec.writeExpression(id, dbConfig.db).map { ps =>
+      ProblemSpec.writeExpression(id, db).map { ps =>
         Ok(views.html.writeExpressionEdit(ps))
       }
     }
   }
 
-  def addCourse = AuthenticatedInstructorAction { implicit request =>
-    implicit val messages = messagesAPI.preferred(request)
-    Future { Ok(views.html.addCourse(newCourseForm)) }
+  def addCourse = {
+    AuthenticatedInstructorAction { implicit request =>
+      implicit val messages = messagesAPI.preferred(request)
+      Future { Ok(views.html.addCourse(newCourseForm)) }
+    }
   }
 
   def viewCourse(courseid: Int) = AuthenticatedInstructorAction { implicit request =>
-    Queries.loadCourseData(courseid, dbConfig.db).map(cd => Ok(views.html.viewCourse(cd)))
+    Queries.loadCourseData(courseid, db).map(cd => Ok(views.html.viewCourse(cd)))
   }
-  
-  def quizResults(quizid: Int, courseid:Int) = AuthenticatedInstructorAction { implicit request =>
-    Queries.quizResults(quizid, courseid, dbConfig.db).map(qr => Ok(views.html.quizResults(qr)))
-  } 
+
+  def quizResults(quizid: Int, courseid: Int) = AuthenticatedInstructorAction { implicit request =>
+    Queries.quizResults(quizid, courseid, db).map(qr => Ok(views.html.quizResults(qr)))
+  }
 
   def setupDatabase = Action { implicit request =>
-    dbConfig.db.run(Users.filter(_.username === "mlewis").result).map(s =>
+    db.run(Users.filter(_.username === "mlewis").result).map(s =>
       if (s.isEmpty) {
-        dbConfig.db.run(slick.dbio.DBIOAction.seq(
+        db.run(slick.dbio.DBIOAction.seq(
           Users += UsersRow(0, "mlewist", "0123456"),
           Users += UsersRow(0, "mlewis", "0123456"),
           Courses += CoursesRow(0, "CSCI1302", "F15", 6),
@@ -220,13 +226,11 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
   // POST Actions
 
   def verifyLogin = Action.async(implicit request => {
-    implicit val messages = messagesAPI.preferred(request)
     userForm.bindFromRequest().fold(
       formWithErrors => {
         Future { Ok(views.html.oldLogin(formWithErrors)) }
       },
       value => {
-//        val db = dbConfig.db
         Queries.validLogin(value, db).flatMap(_ match {
           case -1 =>
             Future(Redirect(routes.Application.index))
@@ -244,7 +248,6 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
 
   def submitQuiz = AuthenticatedAction { implicit request =>
     {
-      val db = dbConfig.db
       val userid = request.session("userid").toInt
       request.body.asFormUrlEncoded match {
         case Some(params) =>
@@ -278,7 +281,6 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
           Future { Ok(views.html.addCourse(formWithErrors)) }
         },
         value => {
-          val db = dbConfig.db
           val userid = request.session("userid").toInt
           Queries.addCourse(value, userid, db)
           Future { Redirect(routes.Application.instructorPage) }
@@ -287,7 +289,6 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
   }
 
   def editQuizPost = AuthenticatedInstructorAction { implicit request =>
-    val db = dbConfig.db
     val userid = request.session("userid").toInt
     request.body.asFormUrlEncoded match {
       case Some(params) =>
@@ -306,7 +307,6 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
   }
 
   def multipleChoiceEditPost = AuthenticatedInstructorAction { implicit request =>
-    val db = dbConfig.db
     val userid = request.session("userid").toInt
     request.body.asFormUrlEncoded match {
       case Some(params) =>
@@ -328,7 +328,6 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
   }
 
   def writeFunctionEditPost = AuthenticatedInstructorAction { implicit request =>
-    val db = dbConfig.db
     val userid = request.session("userid").toInt
     request.body.asFormUrlEncoded match {
       case Some(params) =>
@@ -337,13 +336,13 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
         val code = params("code")(0)
         val fname = params("fname")(0)
         val numRuns = params("numRuns")(0).toInt
-        val varSpecs = if(params("specCodes")(0).isEmpty) Array[Array[Int]]() else params("specCodes")(0).split(",").map(_.split("-").map(_.toInt))
+        val varSpecs = if (params("specCodes")(0).isEmpty) Array[Array[Int]]() else params("specCodes")(0).split(",").map(_.split("-").map(_.toInt))
         if (id < 1) {
           db.run(FunctionQuestions += FunctionQuestionsRow(id, prompt, code, fname, numRuns))
         } else {
           db.run(FunctionQuestions.filter(_.funcQuestionId === id).update(FunctionQuestionsRow(id, prompt, code, fname, numRuns)))
         }
-        for(Array(tn,pn) <- varSpecs) {
+        for (Array(tn, pn) <- varSpecs) {
           val name = params(s"VName-$tn-$pn")(0)
           println(name)
           val (min, max, length, minLen, maxLen, genCode) = tn match {
@@ -366,7 +365,7 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
           }
           println(s"$id, $tn, $pn - $min, $max, $length, $minLen, $maxLen, $genCode")
           db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === ProblemSpec.FunctionType && vs.paramNumber === pn).
-              update(VariableSpecificationsRow(id, ProblemSpec.FunctionType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))
+            update(VariableSpecificationsRow(id, ProblemSpec.FunctionType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))
         }
         Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Question saved.") }
       case None =>
@@ -375,7 +374,6 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
   }
 
   def writeLambdaEditPost = AuthenticatedInstructorAction { implicit request =>
-    val db = dbConfig.db
     val userid = request.session("userid").toInt
     request.body.asFormUrlEncoded match {
       case Some(params) =>
@@ -384,13 +382,13 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
         val code = params("code")(0)
         val rtype = params("return")(0)
         val numRuns = params("numRuns")(0).toInt
-        val varSpecs = if(params("specCodes")(0).isEmpty) Array[Array[Int]]() else params("specCodes")(0).split(",").map(_.split("-").map(_.toInt))
+        val varSpecs = if (params("specCodes")(0).isEmpty) Array[Array[Int]]() else params("specCodes")(0).split(",").map(_.split("-").map(_.toInt))
         if (id < 1) {
           db.run(LambdaQuestions += LambdaQuestionsRow(id, prompt, code, rtype, numRuns))
         } else {
           db.run(LambdaQuestions.filter(_.lambdaQuestionId === id).update(LambdaQuestionsRow(id, prompt, code, rtype, numRuns)))
         }
-        for(Array(tn,pn) <- varSpecs) {
+        for (Array(tn, pn) <- varSpecs) {
           val name = params(s"VName-$tn-$pn")(0)
           val (min, max, length, minLen, maxLen, genCode) = tn match {
             case VariableSpec.IntSpecType =>
@@ -411,7 +409,7 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
               (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
           }
           db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === ProblemSpec.LambdaType && vs.paramNumber === pn).
-              update(VariableSpecificationsRow(id, ProblemSpec.LambdaType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))
+            update(VariableSpecificationsRow(id, ProblemSpec.LambdaType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))
         }
         Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Question saved.") }
       case None =>
@@ -420,7 +418,6 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
   }
 
   def writeExpressionEditPost = AuthenticatedInstructorAction { implicit request =>
-    val db = dbConfig.db
     val userid = request.session("userid").toInt
     request.body.asFormUrlEncoded match {
       case Some(params) =>
@@ -429,13 +426,13 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
         val code = params("code")(0)
         val setup = params("setup")(0)
         val numRuns = params("numRuns")(0).toInt
-        val varSpecs = if(params("specCodes")(0).isEmpty) Array[Array[Int]]() else params("specCodes")(0).split(",").map(_.split("-").map(_.toInt))
+        val varSpecs = if (params("specCodes")(0).isEmpty) Array[Array[Int]]() else params("specCodes")(0).split(",").map(_.split("-").map(_.toInt))
         if (id < 1) {
           db.run(ExpressionQuestions += ExpressionQuestionsRow(id, prompt, code, setup, numRuns))
         } else {
           db.run(ExpressionQuestions.filter(_.exprQuestionId === id).update(ExpressionQuestionsRow(id, prompt, code, setup, numRuns)))
         }
-        for(Array(tn,pn) <- varSpecs) {
+        for (Array(tn, pn) <- varSpecs) {
           val name = params(s"VName-$tn-$pn")(0)
           val (min, max, length, minLen, maxLen, genCode) = tn match {
             case VariableSpec.IntSpecType =>
@@ -456,7 +453,7 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
               (Some(params(s"Min-$tn-$pn")(0).toInt), Some(params(s"Max-$tn-$pn")(0).toInt), None, Some(params(s"MinLen-$tn-$pn")(0).toInt), Some(params(s"MaxLen-$tn-$pn")(0).toInt), None)
           }
           db.run(VariableSpecifications.filter(vs => vs.questionId === id && vs.questionType === ProblemSpec.ExpressionType && vs.paramNumber === pn).
-              update(VariableSpecificationsRow(id, ProblemSpec.ExpressionType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))
+            update(VariableSpecificationsRow(id, ProblemSpec.ExpressionType, pn, tn, name, min, max, length, minLen, maxLen, genCode)))
         }
         Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Question saved.") }
       case None =>
@@ -465,7 +462,6 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
   }
 
   def addVarSpec = AuthenticatedInstructorAction { implicit request =>
-    val db = dbConfig.db
     val userid = request.session("userid").toInt
     request.body.asFormUrlEncoded match {
       case Some(params) =>
@@ -479,7 +475,7 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
             case ProblemSpec.FunctionType => Redirect(routes.Application.writeFunctionEdit(qid))
             case ProblemSpec.LambdaType => Redirect(routes.Application.writeLambdaEdit(qid))
             case ProblemSpec.ExpressionType => Redirect(routes.Application.writeExpressionEdit(qid))
-        })
+          })
       case None =>
         Future { Redirect(routes.Application.instructorPage).flashing("message" -> "Oops! Error, no data.") }
     }
@@ -488,34 +484,33 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
   // AJAX Calls
 
   def associateMCQuestionWithQuiz(questionid: Int, quizid: Int) = AuthenticatedInstructorAction { implicit request =>
-    dbConfig.db.run(MultipleChoiceAssoc += MultipleChoiceAssocRow(Some(quizid), Some(questionid)))
+    db.run(MultipleChoiceAssoc += MultipleChoiceAssocRow(Some(quizid), Some(questionid)))
     Future { Ok("good") }
   }
 
-  def associateFuncQuestionWithQuiz(questionid: Int, quizid: Int) =  AuthenticatedInstructorAction { implicit request =>
-    dbConfig.db.run(FunctionAssoc += FunctionAssocRow(Some(quizid), Some(questionid)))
+  def associateFuncQuestionWithQuiz(questionid: Int, quizid: Int) = AuthenticatedInstructorAction { implicit request =>
+    db.run(FunctionAssoc += FunctionAssocRow(Some(quizid), Some(questionid)))
     Future { Ok("good") }
   }
 
-  def associateLambdaQuestionWithQuiz(questionid: Int, quizid: Int) =  AuthenticatedInstructorAction { implicit request =>
-    dbConfig.db.run(LambdaAssoc += LambdaAssocRow(Some(quizid), Some(questionid)))
+  def associateLambdaQuestionWithQuiz(questionid: Int, quizid: Int) = AuthenticatedInstructorAction { implicit request =>
+    db.run(LambdaAssoc += LambdaAssocRow(Some(quizid), Some(questionid)))
     Future { Ok("good") }
   }
 
   def associateExprQuestionWithQuiz(questionid: Int, quizid: Int) = AuthenticatedInstructorAction { implicit request =>
-    dbConfig.db.run(ExpressionAssoc += ExpressionAssocRow(Some(quizid), Some(questionid)))
+    db.run(ExpressionAssoc += ExpressionAssocRow(Some(quizid), Some(questionid)))
     Future { Ok("good") }
   }
 
   def associateQuizWithCourse(quizid: Int, courseid: Int, dateTime: String) = AuthenticatedInstructorAction { implicit request =>
     val zoneId = ZoneId.of("America/Chicago")
     val time = Timestamp.from(java.time.Instant.from(ZonedDateTime.of(LocalDateTime.parse(dateTime), zoneId)))
-    dbConfig.db.run(QuizCourseCloseAssoc += QuizCourseCloseAssocRow(Some(quizid), Some(courseid), time))
+    db.run(QuizCourseCloseAssoc += QuizCourseCloseAssocRow(Some(quizid), Some(courseid), time))
     Future { Ok("good") }
   }
 
   def createUser(username: String, id: String) = AuthenticatedInstructorAction { implicit request =>
-    val db = dbConfig.db
     db.run(Users.filter(_.username === username).result).foreach(s => {
       if (s.isEmpty) db.run(Users += UsersRow(0, username, id))
     })
@@ -524,8 +519,6 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
 
   def removeQuestionQuizAssoc(questionid: Int, questionType: Int, quizid: Int) = AuthenticatedInstructorAction { implicit request =>
     println("Associate mc question " + questionid + " with " + quizid)
-    val db = dbConfig.db
-    import slick.driver.MySQLDriver.api._
     questionType match {
       case ProblemSpec.MultipleChoiceType =>
         db.run(MultipleChoiceAssoc.filter(a => a.mcQuestionId === questionid && a.quizid === quizid).delete)
@@ -540,9 +533,8 @@ class Application @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, 
   }
 
   // Other methods
-  
+
   private def gotoQuizList(uid: Int)(implicit request: Request[AnyContent]) = {
-    val db = dbConfig.db
     val classes = Queries.coursesFor(uid, db)
     val quizzes = (for (s <- classes) yield {
       Future.sequence(for (c <- s) yield {

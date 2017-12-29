@@ -1,5 +1,5 @@
 @* quizResults Template File *@
-@(results: QuizResultsData)(implicit flash:Flash)
+@(results: QuizResultsData)(implicit request: RequestHeader, flash:Flash)
 
 @main("Quiz Results", true) {
 	<h2>Results for @{results.name}</h2>

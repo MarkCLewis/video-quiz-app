@@ -1,13 +1,13 @@
 package models
 
-import slick.driver.MySQLDriver.api._
+import slick.jdbc.MySQLProfile.api._
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import java.sql.Timestamp
 import java.util.Date
 import Tables._
+import scala.concurrent.ExecutionContext
 
 /**
  * @author mlewis
@@ -20,7 +20,7 @@ object Queries {
   val Instructor = 2
   
   // Courses
-  def coursesFor(userid: Int, db: Database): Future[Seq[CoursesRow]] = {
+  def coursesFor(userid: Int, db: Database)(implicit ec: ExecutionContext): Future[Seq[CoursesRow]] = {
     db.run {
       (for {
         uca <- UserCourseAssoc
@@ -31,7 +31,7 @@ object Queries {
     }
   }
   
-  def addCourse(ncd:NewCourseData, userid:Int, db: Database):Unit = {
+  def addCourse(ncd:NewCourseData, userid:Int, db: Database)(implicit ec: ExecutionContext):Unit = {
     val StudentRegex = """(\d{7})|(\w{2,8})@trinity\.edu""".r
     // Create course entry
     db.run(Courses += CoursesRow(0,ncd.code,ncd.semester,ncd.section)).foreach { cnt =>
@@ -77,7 +77,7 @@ object Queries {
     }
   }
   
-  def loadCourseData(courseid:Int, db:Database):Future[CourseData] = {
+  def loadCourseData(courseid:Int, db:Database)(implicit ec: ExecutionContext):Future[CourseData] = {
     val courseRow = db.run(Courses.filter(_.courseid === courseid).result.head)
     val instructors = db.run(
       (for {
@@ -114,20 +114,20 @@ object Queries {
   }
 
   // Users
-  def validLogin(user: UsersRow, db: Database): Future[Int] = {
+  def validLogin(user: UsersRow, db: Database)(implicit ec: ExecutionContext): Future[Int] = {
     val matches = db.run(Users.filter(u => u.username === user.username && u.trinityid === user.trinityid).result)
     matches.map(us => if (us.isEmpty) -1 else us.head.userid)
   }
 
-  def fetchUserByName(username: String, db: Database): Future[UsersRow] = {
+  def fetchUserByName(username: String, db: Database)(implicit ec: ExecutionContext): Future[UsersRow] = {
     db.run { Users.filter(u => u.username === username).result.head }
   }
   
-  def instructorCourseIds(userid:Int, db:Database): Future[Seq[Option[Int]]] = {
+  def instructorCourseIds(userid:Int, db:Database)(implicit ec: ExecutionContext): Future[Seq[Option[Int]]] = {
     db.run(UserCourseAssoc.filter(uca => uca.userid === userid && uca.role === Instructor).map(_.courseid).result)
   }
 
-  def instructorCourseRows(userid:Int, db:Database): Future[Seq[CoursesRow]] = {
+  def instructorCourseRows(userid:Int, db:Database)(implicit ec: ExecutionContext): Future[Seq[CoursesRow]] = {
     db.run {
       (for {
         (ucar,cr) <- UserCourseAssoc join Courses on (_.courseid === _.courseid)
@@ -139,7 +139,7 @@ object Queries {
   }
 
   // Quizzes
-  def allQuizzesForClass(courseid: Int, db: Database): Future[Seq[(QuizzesRow, Timestamp)]] = {
+  def allQuizzesForClass(courseid: Int, db: Database)(implicit ec: ExecutionContext): Future[Seq[(QuizzesRow, Timestamp)]] = {
     db.run {
       (for {
         qca <- QuizCourseCloseAssoc
@@ -150,7 +150,7 @@ object Queries {
     }
   }
 
-  def currentQuizzesForClass(courseid: Int, db: Database): Future[Seq[QuizzesRow]] = {
+  def currentQuizzesForClass(courseid: Int, db: Database)(implicit ec: ExecutionContext): Future[Seq[QuizzesRow]] = {
     val now = new Timestamp(new Date().getTime)
     db.run {
       (for {
@@ -162,7 +162,7 @@ object Queries {
     }
   }
 
-  def numberOfQuestions(quizid: Int, db: Database): Future[Int] = {
+  def numberOfQuestions(quizid: Int, db: Database)(implicit ec: ExecutionContext): Future[Int] = {
     val mcCount = db.run {
       MultipleChoiceAssoc.filter(_.quizid === quizid).length.result
     }
@@ -178,7 +178,7 @@ object Queries {
     for(mc <- mcCount; fc <- funcCount; lc <- lambdaCount; ec <- exprCount) yield mc+fc+lc+ec
   }
   
-  def numberOfCorrectQuestions(quizid: Int, userid: Int, db: Database): Future[Int] = {
+  def numberOfCorrectQuestions(quizid: Int, userid: Int, db: Database)(implicit ec: ExecutionContext): Future[Int] = {
     val mcCount = db.run {
       McAnswers.filter(a => a.quizid === quizid && a.userid === userid && a.correct).map(_.mcQuestionId).result
     }
@@ -194,13 +194,13 @@ object Queries {
     }
   }
 
-  def quizScore(quizid: Int, userid: Int, db: Database): Future[(Int, Int)] = {
+  def quizScore(quizid: Int, userid: Int, db: Database)(implicit ec: ExecutionContext): Future[(Int, Int)] = {
     val total = numberOfQuestions(quizid,db)
     val correct = numberOfCorrectQuestions(quizid, userid, db);
     for(t <- total; c <- correct) yield (c,t)
   }
   
-  def multipleChoiceData(quizid:Int, userid:Int, db:Database): Future[Seq[MultipleChoiceData]] = {
+  def multipleChoiceData(quizid:Int, userid:Int, db:Database)(implicit ec: ExecutionContext): Future[Seq[MultipleChoiceData]] = {
     val rows = db.run {
       (for {
         (mcq,mca) <- MultipleChoiceQuestions join MultipleChoiceAssoc on (_.mcQuestionId === _.mcQuestionId)
@@ -225,7 +225,7 @@ object Queries {
     data
   }
 
-  def codeQuestionData(quizid:Int, userid:Int, db:Database): Future[Seq[CodeQuestionData]] = {
+  def codeQuestionData(quizid:Int, userid:Int, db:Database)(implicit ec: ExecutionContext): Future[Seq[CodeQuestionData]] = {
     val funcRows = db.run {
       (for {
         (fq,fa) <- FunctionQuestions join FunctionAssoc on (_.funcQuestionId === _.funcQuestionId)
@@ -296,7 +296,7 @@ object Queries {
     } yield fd ++ ld ++ ed
   }
 
-  def quizData(quizid:Int, userid:Int, db:Database): Future[QuizData] = {
+  def quizData(quizid:Int, userid:Int, db:Database)(implicit ec: ExecutionContext): Future[QuizData] = {
     val quizRow = db.run(Quizzes.filter(_.quizid === quizid).result.head)
     val mcQuestions = multipleChoiceData(quizid, userid, db)
     val codeQuestions = codeQuestionData(quizid, userid, db)
@@ -307,7 +307,7 @@ object Queries {
     } yield QuizData(quizid,userid,qr.name,qr.description,mc,cq)
   }
   
-  def quizSpecs(quizid:Int, db:Database): Future[Seq[ProblemSpec]] = {
+  def quizSpecs(quizid:Int, db:Database)(implicit ec: ExecutionContext): Future[Seq[ProblemSpec]] = {
     val mcQuestions = db.run(MultipleChoiceAssoc.filter(_.quizid === quizid).result).flatMap(f => Future.sequence(f.map(mca => {
       db.run(MultipleChoiceQuestions.filter(_.mcQuestionId === mca.mcQuestionId).result)
     })))
@@ -336,7 +336,7 @@ object Queries {
     } yield { mcqs ++ fqs ++ lqs ++ eqs }
   }
   
-  def quizResults(quizid: Int, courseid: Int, db: Database):Future[QuizResultsData] = {
+  def quizResults(quizid: Int, courseid: Int, db: Database)(implicit ec: ExecutionContext):Future[QuizResultsData] = {
     val quizRow = db.run(Quizzes.filter(_.quizid === quizid).result.head)
     val mcQuestions = multipleChoiceResultsData(quizid, courseid, db)
     val codeQuestions = codeQuestionResultsData(quizid, courseid, db)
@@ -347,7 +347,7 @@ object Queries {
     } yield QuizResultsData(quizid,courseid,qr.name,qr.description,mc,cq)
   }
   
-  def multipleChoiceResultsData(quizid:Int, courseid:Int, db: Database):Future[Seq[MultipleChoiceResultsData]] = {
+  def multipleChoiceResultsData(quizid:Int, courseid:Int, db: Database)(implicit ec: ExecutionContext):Future[Seq[MultipleChoiceResultsData]] = {
     val rows = db.run {
       (for {
         (mcq,mca) <- MultipleChoiceQuestions join MultipleChoiceAssoc on (_.mcQuestionId === _.mcQuestionId)
@@ -378,7 +378,7 @@ object Queries {
     data
   }
   
-  def codeQuestionResultsData(quizid:Int, courseid:Int, db: Database):Future[Seq[CodeQuestionResultsData]] = {
+  def codeQuestionResultsData(quizid:Int, courseid:Int, db: Database)(implicit ec: ExecutionContext):Future[Seq[CodeQuestionResultsData]] = {
     val funcRows = db.run {
       (for {
         (fq,fa) <- FunctionQuestions join FunctionAssoc on (_.funcQuestionId === _.funcQuestionId)

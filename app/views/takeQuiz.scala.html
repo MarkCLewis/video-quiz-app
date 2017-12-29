@@ -1,10 +1,11 @@
 @* takeQuiz Template File *@
-@(quiz:QuizData)(implicit flash:Flash)
+@(quiz:QuizData)(implicit request: MessagesRequestHeader, flash:Flash)
 
 @main("Take " + quiz.name, true) {
 	<h2>Take Quiz - @quiz.name</h2>
 	<p>@quiz.description</p>
 	<form method="post" action="submitQuiz">
+		@views.html.helper.CSRF.formField
 		<input type="hidden" name="quizid" value="@quiz.quizid"/>
 		@for(mcd <- quiz.multipleChoice) {
 			<div>

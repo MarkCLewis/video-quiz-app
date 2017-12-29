@@ -2,6 +2,30 @@
  * 
  */
 
+// Bind buttons on load
+$(function () {
+	$(".quizAdd").each((i, button) => {
+		let quizid = $(button).data("quizid");
+		$(button).click(event => associateQuizWithCourse(quizid));
+	})
+	$(".assocMCWithQuiz").each((i, button) => {
+		let mcid = $(button).data("mcquestionid");
+		$(button).click(event => associateMCWithQuiz(mcid));
+	})
+	$(".assocFuncWithQuiz").each((i, button) => {
+		let funcid = $(button).data("funcquestionid");
+		$(button).click(event => associateFuncWithQuiz(funcid));
+	})
+	$(".assocLambdaWithQuiz").each((i, button) => {
+		let lambdaid = $(button).data("lambdaquestionid");
+		$(button).click(event => associateLambdaWithQuiz(lambdaid));
+	})
+	$(".assocExprWithQuiz").each((i, button) => {
+		let exprid = $(button).data("exprquestionid");
+		$(button).click(event => associateExprWithQuiz(exprid));
+	})
+})
+
 function newSpecType(prefix) {
 	var select = $("#funcNewSpecType");
 	var type = select[0].selectedIndex;
@@ -41,10 +65,12 @@ function multipleChoiceFocusLost(index) {
 }
 
 function associateMCWithQuiz(mcid) {
+	let token = $('body').data("token")
 	var quizSelect = $("#quiz-mc-"+mcid);
 	var quizid = quizSelect.val();
 	var request = $.ajax({
 		method: "PUT",
+		data: { csrfToken: token},
 		url: "addMCToQuiz?questionid="+mcid+"&quizid="+quizid
 	});
 	request.done(function () {
@@ -56,10 +82,12 @@ function associateMCWithQuiz(mcid) {
 }
 
 function associateExprWithQuiz(id) {
+	let token = $('body').data("token") 
 	var quizSelect = $("#quiz-expr-"+id);
 	var quizid = quizSelect.val();
 	var request = $.ajax({
 		method: "PUT",
+		data: { csrfToken: token},
 		url: "addExprToQuiz?questionid="+id+"&quizid="+quizid
 	});
 	request.done(function () {
@@ -71,10 +99,12 @@ function associateExprWithQuiz(id) {
 }
 
 function associateFuncWithQuiz(id) {
+	let token = $('body').data("token") 
 	var quizSelect = $("#quiz-func-"+id);
 	var quizid = quizSelect.val();
 	var request = $.ajax({
 		method: "PUT",
+		data: { csrfToken: token},
 		url: "addFuncToQuiz?questionid="+id+"&quizid="+quizid
 	});
 	request.done(function () {
@@ -86,10 +116,12 @@ function associateFuncWithQuiz(id) {
 }
 
 function associateLambdaWithQuiz(id) {
+	let token = $('body').data("token") 
 	var quizSelect = $("#quiz-lambda-"+id);
 	var quizid = quizSelect.val();
 	var request = $.ajax({
 		method: "PUT",
+		data: { csrfToken: token},
 		url: "addLambdaToQuiz?questionid="+id+"&quizid="+quizid
 	});
 	request.done(function () {
@@ -101,9 +133,11 @@ function associateLambdaWithQuiz(id) {
 }
 
 function removeQuestionQuizAssoc(questionid, questionType, quizid,index) {
+	let token = $('body').data("token") 
 	$("#prob-"+index).remove();
 	var request = $.ajax({
 		method: "DELETE",
+		data: { csrfToken: token},
 		url: "removeQuestionFromQuiz?questionid="+questionid+"&questionType="+questionType+"&quizid="+quizid
 	});
 	request.done(function () {
@@ -115,11 +149,13 @@ function removeQuestionQuizAssoc(questionid, questionType, quizid,index) {
 }
 
 function associateQuizWithCourse(quizid) {
+	let token = $('body').data("token") 
 	var courseSelect = $("#qr-sel-"+quizid);
 	var courseid = courseSelect.val();
 	var dateTime = $("#qr-datetime-"+quizid).val();
 	var request = $.ajax({
 		method: "PUT",
+		data: { csrfToken: token},
 		url: "addQuizToCourse?quizid="+quizid+"&courseid="+courseid+"&dateTime="+dateTime
 	});
 	request.done(function () {

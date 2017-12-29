@@ -1,5 +1,5 @@
 @* editQuiz Template File *@
-@(quizRow:Tables.QuizzesRow, taken:Boolean, probInfo:Seq[ProblemSpec])(implicit flash:Flash)
+@(quizRow:Tables.QuizzesRow, taken:Boolean, probInfo:Seq[ProblemSpec])(implicit request: MessagesRequestHeader, flash:Flash)
 
 @*
 Simplify down to listing questions and allowing them to be removed from the quiz. Consider option for adding to the quiz later.
@@ -11,6 +11,7 @@ Simplify down to listing questions and allowing them to be removed from the quiz
 		<p>This quiz has been taken by one or more students and can no longer be edited. Here is a display of the quiz.</p>
 	}
 	<form method="POST" action="editQuizPost">
+	@views.html.helper.CSRF.formField
 	<input type="hidden" name="quizid" id="quizid" value="@quizRow.quizid"/>
 	<p>Name: <input type="text" name="name" id="name" value="@quizRow.name" placeholder="Name"/></p>
 	<p>Description: <textarea name="description" id="description" placeholder="Description">@quizRow.description</textarea></p>

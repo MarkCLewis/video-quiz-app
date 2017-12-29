@@ -1,8 +1,10 @@
-@(userForm:Form[Tables.UsersRow])(implicit flash:Flash, messages: Messages)
+@(userForm:Form[Tables.UsersRow])(implicit request: MessagesRequestHeader, flash:Flash)
+
+@import helper._
 
 @main("Main Menu", false) {
 	<p>Login</p>
-	@helper.form(action = routes.Application.verifyLogin) {
+	@helper.form(action = CSRF(routes.Application.verifyLogin)) {
 		@helper.inputText(userForm("Username"))
 		@helper.inputPassword(userForm("Trinity ID"))
 		<div class='form-actions'>

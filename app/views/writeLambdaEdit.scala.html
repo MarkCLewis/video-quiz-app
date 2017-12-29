@@ -1,10 +1,11 @@
 @* writeLambdaEdit Template File *@
-@(spec:WriteLambda)(implicit flash:Flash)
+@(spec:WriteLambda)(implicit request: MessagesRequestHeader, flash:Flash)
 
 @main((if(spec.id<1) "Create" else "Edit")+"Write Lambda", true) {
 	<h2>@{if(spec.id<1) "Create" else "Edit"} Write Lambda</h2>
 
 	<p><form method="post" action="writeLambdaEditPost">
+		@views.html.helper.CSRF.formField
 		<input type="hidden" name="id" value="@spec.id"/>
 		Prompt:<br>
 		<textarea name="prompt" id="prompt">@spec.prompt</textarea><br>
@@ -41,6 +42,7 @@
 	</form></p>
 	
 	<p><form method="post" action="addVarSpec">
+		@views.html.helper.CSRF.formField
 		<input type="hidden" name="type" value="@ProblemSpec.LambdaType"/>
 		<input type="hidden" name="id" value="@spec.id"/>
 		<input type="hidden" name="newParamNum" value="@if(spec.varSpecs.isEmpty){0} else {@{spec.varSpecs.map(_.paramNumber).max+1}}"/>

@@ -1,6 +1,6 @@
 package util
 
-import slick.driver.MySQLDriver.api._
+import slick.jdbc.MySQLProfile.api._
 import java.util.concurrent.ConcurrentHashMap
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
@@ -17,7 +17,7 @@ import java.time.LocalDateTime
 object AddTestData extends App {
     println("Get database")
 //    val db = Database.forConfig("slick.dbs.default")
-    val db = Database.forURL("jdbc:mysql://localhost/video_quizzes", user="mlewis", password="password", driver="com.mysql.jdbc.Driver")
+    val db = Database.forURL("jdbc:mysql://localhost/video_quizzes", user="mlewis", password="password", driver="com.mysql.cj.jdbc.Driver")
     Await.result(db.run(DBIO.seq(
       Users.delete,
       Courses.delete,

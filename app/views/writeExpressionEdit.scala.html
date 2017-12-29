@@ -1,10 +1,11 @@
 @* writeExpressionEdit Template File *@
-@(spec:WriteExpression)(implicit flash:Flash)
+@(spec:WriteExpression)(implicit request: MessagesRequestHeader, flash:Flash)
 
 @main((if(spec.id<1) "Create" else "Edit")+"Write Expression", true) {
 	<h2>@{if(spec.id<1) "Create" else "Edit"} Write Expression</h2>
 
 	<p><form method="post" action="writeExpressionEditPost">
+		@views.html.helper.CSRF.formField
 		<input type="hidden" name="id" value="@spec.id"/>
 		Prompt:<br>
 		<textarea name="prompt" id="prompt">@spec.prompt</textarea><br>
@@ -41,6 +42,7 @@
 	</form></p>
 	
 	<p><form method="post" action="addVarSpec">
+		@views.html.helper.CSRF.formField
 		<input type="hidden" name="type" value="@ProblemSpec.ExpressionType"/>
 		<input type="hidden" name="id" value="@spec.id"/>
 		<input type="hidden" name="newParamNum" value="@if(spec.varSpecs.isEmpty){0} else {@{spec.varSpecs.map(_.paramNumber).max+1}}"/>

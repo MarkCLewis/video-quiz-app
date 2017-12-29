@@ -4,24 +4,25 @@ import play.api._
 import play.api.mvc._
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.i18n.MessagesApi
-import play.api.libs.concurrent.Execution.Implicits._
 import javax.inject.Inject
-import slick.driver.JdbcProfile
-import slick.driver.MySQLDriver.api._
+import slick.jdbc.JdbcProfile
+import slick.jdbc.MySQLProfile.api._
 import models._
 import Tables._
+import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import java.sql.Timestamp
 import java.time.LocalDateTime
+import play.api.db.slick.HasDatabaseConfigProvider
 
-class ProgrammingQuestions @Inject() (implicit dbConfigProvider: DatabaseConfigProvider, messagesAPI: MessagesApi) extends Controller {
-  val dbConfig = dbConfigProvider.get[JdbcProfile]
-  implicit val db = dbConfig.db
+class ProgrammingQuestions @Inject() (
+    protected val dbConfigProvider: DatabaseConfigProvider, 
+    mcc: MessagesControllerComponents)(implicit ec: ExecutionContext) extends MessagesAbstractController(mcc) with HasDatabaseConfigProvider[JdbcProfile] {
 
   import ControlHelpers._
+  implicit val actionBuilder = Action
   
   def submitQuiz = AuthenticatedAction { implicit request =>
-      val db = dbConfig.db
       val userid = request.session("userid").toInt
       request.body.asFormUrlEncoded match {
         case Some(params) =>

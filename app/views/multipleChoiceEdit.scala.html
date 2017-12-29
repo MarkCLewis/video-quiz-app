@@ -1,5 +1,5 @@
 @* multipleChoiceEdit Template File *@
-@(spec:MultipleChoice)(implicit flash:Flash)
+@(spec:MultipleChoice)(implicit request: RequestHeader, flash:Flash)
 
 @main((if(spec.id<1) "Create" else "Edit")+"Multiple Choice", true) {
 	<h2>@{if(spec.id<1) "Create" else "Edit"}Multiple Choice</h2>
