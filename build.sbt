@@ -1,6 +1,6 @@
 name := """video-quiz-play-2.6"""
 
-version := "1.0-SNAPSHOT"
+version := "0.3"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
